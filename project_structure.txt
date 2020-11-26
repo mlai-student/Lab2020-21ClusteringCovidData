@@ -1,0 +1,42 @@
+.
+├── Lab_Introduction.pdf
+├── README.md
+├── Tasks.pdf
+├── app.py
+├── config.ini
+├── data
+│   └── models
+├── notebooks
+├── project_structure.txt
+├── references
+├── reports
+├── requirements.txt
+├── run.py
+└── src
+    ├── __init__.py
+    ├── __pycache__
+    │   └── __init__.cpython-37.pyc
+    ├── classes
+    │   ├── Examples_class
+    │   └── Snippets_class
+    │       └── snippet_smoothing.py
+    ├── data_generating
+    │   ├── __init__.py
+    │   ├── __pycache__
+    │   │   ├── __init__.cpython-37.pyc
+    │   │   └── run_data_generating.cpython-37.pyc
+    │   └── run_data_generating.py
+    ├── model_prediction
+    │   ├── __init__.py
+    │   ├── __pycache__
+    │   │   ├── __init__.cpython-37.pyc
+    │   │   └── run_model_prediction.cpython-37.pyc
+    │   └── run_model_prediction.py
+    └── model_training
+        ├── __init__.py
+        ├── __pycache__
+        │   ├── __init__.cpython-37.pyc
+        │   └── run_model_training.cpython-37.pyc
+        └── run_model_training.py
+
+16 directories, 23 files
