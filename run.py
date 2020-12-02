@@ -2,7 +2,7 @@ import argparse
 import configparser
 import logging
 import os
-from src.data_generating.run_data_generating import run_data_generating_main
+from src.data_generation.run_data_generating import run_data_generating_main
 from src.model_training.run_model_training import run_model_training_main
 from src.model_prediction.run_model_prediction import run_model_prediction_main
 
@@ -12,7 +12,6 @@ def main(path_to_cfg):
     # read the config file
     config = configparser.ConfigParser()
     config.read(path_to_cfg)
-
     #set logging logging level and remove the old file:
     run_log_filename = "run.log"
     if os.path.exists(run_log_filename):

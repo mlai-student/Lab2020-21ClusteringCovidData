@@ -2,6 +2,8 @@ import pandas as pd
 import numpy as np
 import logging
 import random
+from datetime import date
+from pathlib import Path
 from src.data_representation import Snippet
 
 #start the data generating process with a configuration set given
@@ -13,13 +15,8 @@ def run_data_generating_main(data_gen_config):
     df = df[~(df["popData2019"].isnull())]
     df["cases_per_pop"] = df["cases"] / df["popData2019"] * 100
     df.fillna(0, inplace=True)
-    print(df.head())
-
-    #TODO subdivide the ecdc data into snippets using the setting in the config ini
-    #snippets = divide_ecdc_data_into_snipptets(ecdc_raw_data, data_gen_config)
-
-    #TODO save snippets and raw_data into data folder!
-
+    #print(df.head())
+    save_data_frame(df)
 
     logging.debug("data_generating.Run_data_generating finished main")
 
@@ -37,20 +34,34 @@ def get_ecdc_dataset(ecdc_url):
     return df
 
 
+def save_data_frame(df):
+    try:
+        today = date.today().strftime("%b-%d-%Y")
+        Path("data/" + today).mkdir(parents=True, exist_ok=True)
+        df.to_pickle("data/{}/{}".format(today, "ecdc_df"))        
+    except Exception as Argument:
+        logging.error("Saving model file failed with following message:")
+        logging.error(str(Argument))
+
+
 def divide_ecdc_data_into_snipptets(ecdc_df, data_gen_config):
-    data_gen_config["ecdc_dataset_url"]
     snippets = []
-    search_val = data_gen_config["search_val"]
-    label_length = data_gen_config['label_length']
-    length = data_gen_config['snippet_length']
-    groups = ecdc_df[['dateRep', data_gen_config["group_by"], search_val]].groupby(data_gen_config["group_by"])
+    search_val = data_gen_config["examples_search_val"]
+    group_by = data_gen_config["examples_group_by"]
+    try:
+        snippet_length = int(data_gen_config['examples_snippet_length'])
+        label_length = int(data_gen_config['examples_label_length'])
+    except ValueError as Argument:
+        logging.error("Converting config to string failed with message:")
+        logging.error(str(Argument))
     try:
         # extract Examples from data
+        groups = ecdc_df[['dateRep', group_by, search_val]].groupby(group_by)
         for group in groups:
             group_sort = group[1].sort_values(by='dateRep', ascending=True)
-            max_idx = group_sort.shape[0]-length-label_length-1
-            indices = make_interval_indices(data_gen_config['overlap'], \
-                                            length, data_gen_config['no_snippets'], max_idx)
+            max_idx = group_sort.shape[0]-snippet_length-label_length-1
+            indices = make_interval_indices(bool(data_gen_config['examples_overlap']), \
+                                            snippet_length, int(data_gen_config['examples_no_snippets']), max_idx)
             for [start, end] in indices:
                 X = group_sort.iloc[start : end]
                 Y = group_sort.iloc[end+1 : end+1+label_length]
