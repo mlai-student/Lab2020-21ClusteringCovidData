@@ -2,19 +2,18 @@ from datetime import date
 from pathlib import Path
 import logging
 
-
 def save_time_series_model(model):
     try:
         today = date.today().strftime("%b-%d-%Y")
         Path("data/" + today).mkdir(parents=True, exist_ok=True)
         Path("data/{}/{}".format(today, "model") ).mkdir(parents=True, exist_ok=True)
         model.to_pickle("data/{}/{}/{}".format(today, "model" ,str(model.__class__.__name__)))
-        
+
     except Exception as Argument:
         logging.error("Saving model file failed with following message:")
         logging.error(str(Argument))
-    
-    
+
+
 
 '''
 Collection of Time Series Algorithms from the tslearn package
@@ -23,8 +22,12 @@ Collection of Time Series Algorithms from the tslearn package
 from tslearn.clustering import TimeSeriesKMeans, KernelKMeans
 
 def KMeans(X, n_clusters, metric):
+    print("hier?" + str(n_clusters))
     km = TimeSeriesKMeans(n_clusters, metric)
-    km.fit_predict(X)
+    print(X[0][0]+5)
+    print(X[0][0])
+    km.fit(X)
+    print("nö")
     save_time_series_model(km)
 
 def KernelMeans(X, n_clusters, kernel):
@@ -45,5 +48,3 @@ def KNeighbors(X, n_neighbors):
 
 # def Barycenters(X, barycenter_size):
 #     dtw_barycenter_averaging(X, barycenter_size)
-
-
