@@ -38,6 +38,7 @@ def main(path_to_cfg):
         logging.error("Model prediction process failed with the following error message:")
         logging.error(str(Argument))
 
+    logging.shutdown()
     return 0
 
 #main run entry -> always run this method and use a config file to determine what to do exaclty afterwards
