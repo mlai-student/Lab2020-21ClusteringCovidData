@@ -12,3 +12,6 @@ class Snippet:
 
     def smooth_time_series(self, method=""):
         pass
+    
+    def weigh_ts(self):
+        pass
