@@ -1,0 +1,6 @@
+tslearn~=0.4.1
+scikit-learn~=0.22.1
+pandas~=1.0.1
+numpy~=1.18.1
+dash~=1.17.0
+plotly~=4.12.0

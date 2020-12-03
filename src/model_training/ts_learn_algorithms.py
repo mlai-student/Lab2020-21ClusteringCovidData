@@ -18,9 +18,18 @@ def kernelMeans(X, no, k):
 from tslearn.neighbors import KNeighborsTimeSeries
 
 
-def kNeighbors(X, n_neighbors):
-    knn = KNeighborsTimeSeries(n_neighbors)
-    return knn.fit(X)
+def kNeighbors(X, n):
+    knn = KNeighborsTimeSeries(n_neighbors=n).fit(X)
+    return knn
+
+
+from sklearn.neighbors import NearestNeighbors
+
+
+def skNeighbors(X, n):
+    nbrs = NearestNeighbors(n_neighbors=n, algorithm='auto').fit(X)
+    return nbrs
+
 
 # from tslearn.barycenters import dtw_barycenter_averaging
 
