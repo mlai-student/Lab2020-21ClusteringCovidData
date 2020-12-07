@@ -10,6 +10,9 @@ import numpy as np
 
 
 # start the model prediction process with a configuration set given
+from src.model_prediction.benchmark_algorithms import naive_forecast
+
+
 def run_model_prediction_main(pred_config):
     logging.debug("model_prediction.Run_model_prediction started main")
     with open("data/Dec-03-2020/model/NearestNeighbors", 'rb') as f:
@@ -22,6 +25,8 @@ def run_model_prediction_main(pred_config):
 
     mean_sqrt_error_knn = np.mean([abs(y_test[i] - np.mean([y_train[idx] for idx in x])) \
                                    / y_test[i] if y_test[i] != 0 else 0 for i, x in enumerate(indices)])
+    benchmark_error = np.mean([np.abs(naive_forecast(x) - y) / y if y != 0 else 0 for x,y in zip(X_test, y_test)])
     print(mean_sqrt_error_knn)
+    print(benchmark_error)
 
     logging.debug("model_prediction.Run_model_prediction ended main")

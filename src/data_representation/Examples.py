@@ -4,6 +4,7 @@ import logging
 from datetime import date
 from pathlib import Path
 from tslearn.utils import to_time_series_dataset
+import pandas as pd
 
 
 def load_Examples_from_file(filename):
@@ -44,6 +45,25 @@ class Examples:
     def reset_examples(self):
         self.train_examples = []
         self.test_examples = []
+
+    def make_dataframe(self, use_test=False):
+        ts_list = []
+        country_list = []
+        continent_list = []
+        for snippet in self.train_examples:
+            length = snippet.time_series.size
+            ts_list.extend(snippet.time_series)
+            country_list.extend(([snippet.country] * length))
+            continent_list.extend([snippet.continent] * length)
+        print("huhu")
+        print(length)
+        print(self.train_examples[0].country)
+        cases_dict = {'cases': ts_list,
+                'countriesAndTerritories': country_list,
+                'continentExp': continent_list}
+        df = pd.DataFrame(cases_dict, columns=['cases', 'countriesAndTerritories', 'continentExp'])
+        return df
+
 
     def save_to_file(self, filename):
         try:
