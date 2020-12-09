@@ -6,6 +6,9 @@ from src.data_generation.run_data_generating import run_data_generating_main
 from src.model_training.run_model_training import run_model_training_main
 from src.model_prediction.run_model_prediction import run_model_prediction_main
 
+def run_with_std_config():
+    print("Run started with standart config")
+    main("config.ini")
 
 #read the config file and start the program flow on those information
 def main(path_to_cfg):
