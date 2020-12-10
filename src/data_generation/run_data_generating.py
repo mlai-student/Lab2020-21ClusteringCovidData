@@ -7,6 +7,7 @@ from pathlib import Path
 from src.data_representation.Snippet import Snippet
 from src.data_representation.Examples import Examples
 from src.data_generation.smoothing import smooth_timeline
+from src.data_generation.augmentation import  data_augmentation
 
 # start the data generating process with a configuration set given
 def run_data_generating_main(data_gen_config):
@@ -19,18 +20,23 @@ def run_data_generating_main(data_gen_config):
     df.fillna(0, inplace=True)
     save_data_frame(df)
 
+    filename = "snippets"
+
     if data_gen_config.getboolean("complete_cluster"):
         total_snippets = make_total_ts(df)
-        total_examples = Examples()
-        total_examples.fill_from_snippets(total_snippets, test_share=0.)
-        total_examples.save_to_file("total_snippets")
-        test_df = total_examples.make_dataframe()
+        snippet_examples.fill_from_snippets(total_snippets, test_share=0.)
+        filename = "total_snippets"
+        test_df = snippet_examples.make_dataframe()
     else:
         snippets = divide_ecdc_data_into_snippets(df, data_gen_config)
-        snippet_examples = Examples()
+        if data_gen_config.getboolean("do_data_augmentation"):
+            data_augmentation(snippets, data_gen_config)
         snippet_examples.fill_from_snippets(snippets)
-        snippet_examples.save_to_file("snippets")
 
+
+    snippet_examples = Examples()
+
+    snippet_examples.save_to_file(filename)
     logging.debug("data_generating.Run_data_generating finished main")
 
 
