@@ -6,7 +6,7 @@ from datetime import date
 from pathlib import Path
 from src.data_representation.Snippet import Snippet
 from src.data_representation.Examples import Examples
-
+from src.data_generation.smoothing import smooth_timeline
 
 # start the data generating process with a configuration set given
 def run_data_generating_main(data_gen_config):
@@ -18,7 +18,8 @@ def run_data_generating_main(data_gen_config):
     df["cases_per_pop"] = df["cases"] / df["popData2019"] * 100
     df.fillna(0, inplace=True)
     save_data_frame(df)
-    if data_gen_config["complete_cluster"]:
+
+    if data_gen_config.getboolean("complete_cluster"):
         total_snippets = make_total_ts(df)
         total_examples = Examples()
         total_examples.fill_from_snippets(total_snippets, test_share=0.)
@@ -72,6 +73,7 @@ def make_total_ts(ecdc_df):
 
 
 def divide_ecdc_data_into_snippets(ecdc_df, data_gen_config):
+    print("Dividing ecdc data into snippets")
     snippets = []
     search_val = data_gen_config["examples_search_val"]
     group_by = data_gen_config["examples_group_by"]
@@ -93,6 +95,14 @@ def divide_ecdc_data_into_snippets(ecdc_df, data_gen_config):
                 Y = group_sort.iloc[end + 1: end + 1 + label_length]
                 X_a = np.array(X[search_val])
                 Y_a = np.array(Y[search_val])
+
+                #if smoothing is wanted every value gets replaced by the nr_days_for_avg mean
+                if data_gen_config.getboolean("do_smoothing"):
+                    output = smooth_timeline(X_a, Y_a, group_sort, start, end, data_gen_config)
+                    if output == None:
+                        continue
+                    else:
+                        X_a, Y_a = output
                 snippets.append(Snippet(X_a, Y_a))
 
     except Exception as Argument:
