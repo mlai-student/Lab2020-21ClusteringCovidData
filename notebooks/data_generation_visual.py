@@ -17,7 +17,7 @@
 # **Current log file**
 
 # %%
-#PACKAGES
+# PACKAGES
 import os
 PROJECT_PATH = os.getcwd().replace("notebooks", "")
 import sys
@@ -25,27 +25,23 @@ sys.path.append(PROJECT_PATH)
 from src.data_representation.Examples import load_Examples_from_file
 
 # %%
-#running the project from here wont work since we demand to be in the main directory
-#Display the log file:
+# running the project from here wont work since we demand to be in the main directory
+# Display the log file:
 
-log_file =  open(PROJECT_PATH+"run.log", "r")
+log_file = open(PROJECT_PATH + "run.log", "r")
 print(log_file.read())
 log_file.close()
-
-
-
-
 
 # %% [markdown]
 # **Visualize data_generation output**
 
 # %%
-#name of the folder where the output of the Example class file is located
-DATA_GEN_FOLDER_NAME = "Dec-09-2020"
+# name of the folder where the output of the Example class file is located
+DATA_GEN_FOLDER_NAME = "Dec-12-2020"
 EXAMPLES_DATASET_PATH = PROJECT_PATH + "data/" + DATA_GEN_FOLDER_NAME + "/total_snippets"
 
 snippets = load_Examples_from_file(EXAMPLES_DATASET_PATH)
 
 # %%
-print("Number train examples: " + str(len(snippets.train_examples)))
-print("Number test examples: " + str(len(snippets.test_examples)))
+print("Number train examples: " + str(len(snippets.train_data)))
+print("Number test examples: " + str(len(snippets.test_data)))

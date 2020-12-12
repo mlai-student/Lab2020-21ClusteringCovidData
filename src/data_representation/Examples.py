@@ -20,50 +20,52 @@ def load_Examples_from_file(filename):
 class Examples:
 
     def __init__(self):
-        self.train_examples = []
-        self.test_examples = []
+        self.train_data = []
+        self.test_data = []
 
     def fill_from_snippets(self, snippets, test_share=.1):
         test_share = round(test_share * len(snippets))
-        self.test_examples = random.sample(snippets, test_share)
-        self.train_examples = [x for x in snippets if x not in self.test_examples]
+        self.test_data = random.sample(snippets, test_share)
+        self.train_data = [x for x in snippets if x not in self.test_data]
 
     def to_ts_snippet(self):
-        X_train = to_time_series_dataset([x.to_vector() for x in self.train_examples])
-        X_test = to_time_series_dataset([x.to_vector() for x in self.test_examples])
-        y_train = [to_time_series_dataset(x.label) for x in self.train_examples]
-        y_test = [to_time_series_dataset(x.label) for x in self.test_examples]
+        X_train = to_time_series_dataset([x.to_vector() for x in self.train_data])
+        X_test = to_time_series_dataset([x.to_vector() for x in self.test_data])
+        y_train = [to_time_series_dataset(x.label) for x in self.train_data]
+        y_test = [to_time_series_dataset(x.label) for x in self.test_data]
         return X_train, X_test, y_train, y_test
 
     def split_examples(self):
-        X_train = [x.to_vector() for x in self.train_examples]
-        X_test = [x.to_vector() for x in self.test_examples]
-        y_train = [x.label for x in self.train_examples]
-        y_test = [x.label for x in self.test_examples]
+        X_train = [x.to_vector() for x in self.train_data]
+        X_test = [x.to_vector() for x in self.test_data]
+        y_train = [x.label for x in self.train_data]
+        y_test = [x.label for x in self.test_data]
         return X_train, X_test, y_train, y_test
 
     def reset_examples(self):
-        self.train_examples = []
-        self.test_examples = []
+        self.train_data = []
+        self.test_data = []
 
     def make_dataframe(self, use_test=False):
         ts_list = []
         country_list = []
         continent_list = []
-        for snippet in self.train_examples:
+        for snippet in self.train_data:
             length = snippet.time_series.size
             ts_list.extend(snippet.time_series)
             country_list.extend(([snippet.country] * length))
             continent_list.extend([snippet.continent] * length)
-        print("huhu")
-        print(length)
-        print(self.train_examples[0].country)
         cases_dict = {'cases': ts_list,
                 'countriesAndTerritories': country_list,
                 'continentExp': continent_list}
         df = pd.DataFrame(cases_dict, columns=['cases', 'countriesAndTerritories', 'continentExp'])
         return df
 
+    def divide_by_label(self, n_cluster, labels):
+        cluster = [Examples() for _ in range(n_cluster)]
+        for idx, l in enumerate(labels):
+            cluster[l].train_data.append(self.train_data[idx])
+        return cluster
 
     def save_to_file(self, filename):
         try:

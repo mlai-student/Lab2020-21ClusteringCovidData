@@ -10,7 +10,7 @@ import pickle
 def run_model_training_main(train_config):
     logging.debug("model_training.Run_model_training started main")
 
-    snippet_set = load_Examples_from_file("data/Dec-02-2020/snippets")
+    snippet_set = load_Examples_from_file("data/Dec-12-2020/snippets")
     X_train, X_test, y_train, y_test = snippet_set.split_examples()
     knn = skNeighbors(X_train, 5)
     save_sk_model(knn, [X_train, X_test, y_train, y_test])
