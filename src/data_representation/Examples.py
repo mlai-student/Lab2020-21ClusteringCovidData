@@ -5,6 +5,9 @@ from datetime import date
 from pathlib import Path
 from tslearn.utils import to_time_series_dataset
 import pandas as pd
+import numpy as np
+from tslearn.metrics import dtw
+from sklearn.metrics.pairwise import paired_euclidean_distances, pairwise_distances
 
 
 def load_Examples_from_file(filename):
@@ -66,6 +69,26 @@ class Examples:
         for idx, l in enumerate(labels):
             cluster[l].train_data.append(self.train_data[idx])
         return cluster
+
+    def to_distance_matrix(self, metric='dtw'):
+        if metric is 'dtw':
+            distance = dtw
+        elif metric is 'euclidean':
+            distance = paired_euclidean_distances
+        else:
+            return None
+        X = [ts.to_vector() for ts in self.train_data]
+        size = len(self.train_data)
+        distance_matrix = np.zeros(size, size)
+        for i in range(size):
+            for j in range(i, size):
+                if i == j:
+                    d = 0
+                else:
+                    d = dtw(X[i], X[j])
+                distance_matrix[i, j] = distance
+                distance_matrix[j, i] = distance
+        return pairwise_distances(X=distance_matrix, metric='precomputed')
 
     def save_to_file(self, filename):
         try:

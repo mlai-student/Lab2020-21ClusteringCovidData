@@ -51,7 +51,7 @@ print("Number test examples: " + str(len(snippets.test_data)))
 
 # %%
 #Display all snippets in one plot to identify maybe classes of errors
-all_snippets = snippets.train_examples + snippets.test_examples
+all_snippets = snippets.train_data + snippets.test_data
 for snippet in all_snippets:
     plt.plot(snippet.time_series)
 plt.show()
