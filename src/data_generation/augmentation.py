@@ -11,6 +11,6 @@ def data_augmentation(snippets, data_gen_config):
         snippet_copy = dp(snippet)
         distortion = np.random.normal(0,perc_dist, len(snippet_copy.time_series))
         snippet_copy.time_series += np.multiply(snippet_copy.time_series, distortion).astype("int")
-        snippet_copy.label += snippet_copy.label*np.random.normal(0,perc_dist).astype("int")
+        snippet_copy.label += (int)(snippet_copy.label*np.random.normal(0,perc_dist))
         distortet_snippets.append(snippet_copy)
     snippets.extend(distortet_snippets)

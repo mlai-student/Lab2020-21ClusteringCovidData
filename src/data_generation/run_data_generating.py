@@ -13,7 +13,7 @@ from src.data_generation.augmentation import  data_augmentation
 def run_data_generating_main(data_gen_config):
     logging.debug("data_generating.Run_data_generating started main")
     # first get the raw data from ecdc csv using the url from config file
-    df = get_ecdc_dataset(data_gen_config["ecdc_dataset_url"])
+    df = get_ecdc_dataset(data_gen_config)
     # TODO replace/fill NaN and resize cases but only after analysis beforehand -> control by config ini
     df = df[~(df["popData2019"].isnull())]
     df["cases_per_pop"] = df["cases"] / df["popData2019"] * 100
@@ -21,6 +21,7 @@ def run_data_generating_main(data_gen_config):
     save_data_frame(df)
 
     filename = "snippets"
+    snippet_examples = Examples()
 
     if data_gen_config.getboolean("complete_cluster"):
         total_snippets = make_total_ts(df)
@@ -33,17 +34,19 @@ def run_data_generating_main(data_gen_config):
             data_augmentation(snippets, data_gen_config)
         snippet_examples.fill_from_snippets(snippets)
 
-
-    snippet_examples = Examples()
-
     snippet_examples.save_to_file(filename)
     logging.debug("data_generating.Run_data_generating finished main")
 
 
-def get_ecdc_dataset(ecdc_url):
+def get_ecdc_dataset(data_gen_config):
     df = ""
     try:
-        df = pd.read_csv(ecdc_url)
+        #check whether the data should be imported from a file or a link:
+        if data_gen_config.getboolean("use_dataset_from_file"):
+            #expecting a pickle file:
+            df = pd.read_pickle(data_gen_config["dataset_filename"])
+        else:
+            df = pd.read_csv(ecdc_url)
         # save the date of interest as datetime object
         df["dateRep"] = pd.to_datetime(df["dateRep"], format='%d/%m/%Y')
     except Exception as Argument:
@@ -104,7 +107,7 @@ def divide_ecdc_data_into_snippets(ecdc_df, data_gen_config):
 
                 #if smoothing is wanted every value gets replaced by the nr_days_for_avg mean
                 if data_gen_config.getboolean("do_smoothing"):
-                    output = smooth_timeline(X_a, Y_a, group_sort, start, end, data_gen_config)
+                    output = smooth_timeline(X_a, Y_a, group_sort[search_val], start, end, data_gen_config)
                     if output == None:
                         continue
                     else:
