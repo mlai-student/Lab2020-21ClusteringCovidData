@@ -24,7 +24,7 @@ def run_data_generating_main(data_gen_config):
     snippet_examples = Examples()
 
     if data_gen_config.getboolean("complete_cluster"):
-        total_snippets = make_total_ts(df)
+        total_snippets = make_total_ts(df, data_gen_config)
         snippet_examples.fill_from_snippets(total_snippets, test_share=0.)
         filename = "total_snippets"
         test_df = snippet_examples.make_dataframe()
@@ -65,15 +65,24 @@ def save_data_frame(df):
         logging.error(str(Argument))
 
 
-def make_total_ts(ecdc_df):
+def make_total_ts(ecdc_df, data_gen_config):
     examples = []
     try:
         country_group = ecdc_df[['dateRep', 'countriesAndTerritories', 'continentExp', 'cases']] \
             .groupby(['countriesAndTerritories'], as_index=False)
         for country in country_group:
             ts = np.array(country[1]['cases'].array)
+            if data_gen_config.getboolean("replace_negative_values_w_zero"):
+                ts[ts <0] =0
             country_name = country[1]['countriesAndTerritories'].array[0]
             continent = country[1]['continentExp'].array[0]
+            #if smoothing is wanted every value gets replaced by the nr_days_for_avg mean
+            if data_gen_config.getboolean("do_smoothing"):
+                output = smooth_timeline(ts, [], pd.Series(ts), 0, ts.shape[0], data_gen_config, use_zero_filler=True, no_Y=True)
+                if type(output) == None:
+                    continue
+                else:
+                    ts = output
             examples.append(Snippet(ts, None, country=country_name, continent=continent, ascending=True))
     except Exception as Argument:
         logging.error("Storing time series failed with following message:")
@@ -104,6 +113,9 @@ def divide_ecdc_data_into_snippets(ecdc_df, data_gen_config):
                 Y = group_sort.iloc[end + 1: end + 1 + label_length]
                 X_a = np.array(X[search_val])
                 Y_a = np.array(Y[search_val])
+                if data_gen_config.getboolean("replace_negative_values_w_zero"):
+                    X_a[X_a<0] = 0
+                    Y_a[Y_a<0] = 0
 
                 #if smoothing is wanted every value gets replaced by the nr_days_for_avg mean
                 if data_gen_config.getboolean("do_smoothing"):
