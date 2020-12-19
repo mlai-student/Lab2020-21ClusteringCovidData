@@ -24,7 +24,7 @@ def run_data_generating_main(data_gen_config):
     snippet_examples = Examples()
 
     if data_gen_config.getboolean("complete_cluster"):
-        total_snippets = make_total_ts(df)
+        total_snippets = make_total_ts(df, data_gen_config)
         snippet_examples.fill_from_snippets(total_snippets, test_share=0.)
         filename = "total_snippets"
         test_df = snippet_examples.make_dataframe()
@@ -65,7 +65,7 @@ def save_data_frame(df):
         logging.error(str(Argument))
 
 
-def make_total_ts(ecdc_df):
+def make_total_ts(ecdc_df, data_gen_config):
     examples = []
     try:
         country_group = ecdc_df[['dateRep', 'countriesAndTerritories', 'continentExp', 'cases']] \
@@ -74,6 +74,13 @@ def make_total_ts(ecdc_df):
             ts = np.array(country[1]['cases'].array)
             country_name = country[1]['countriesAndTerritories'].array[0]
             continent = country[1]['continentExp'].array[0]
+            #if smoothing is wanted every value gets replaced by the nr_days_for_avg mean
+            if data_gen_config.getboolean("do_smoothing"):
+                output = smooth_timeline(ts, [], pd.Series(ts), 0, ts.shape[0], data_gen_config, use_zero_filler=True, no_Y=True)
+                if type(output) == None:
+                    continue
+                else:
+                    ts = output
             examples.append(Snippet(ts, None, country=country_name, continent=continent, ascending=True))
     except Exception as Argument:
         logging.error("Storing time series failed with following message:")
