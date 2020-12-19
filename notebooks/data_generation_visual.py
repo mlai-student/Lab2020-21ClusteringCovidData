@@ -26,6 +26,7 @@ from src.data_representation.Examples import load_Examples_from_file
 from matplotlib import pyplot as plt
 import pandas as pd
 import numpy as np
+import src.model_training.clusters
 
 # %%
 # running the project from here wont work since we demand to be in the main directory

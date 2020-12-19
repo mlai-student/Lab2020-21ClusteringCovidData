@@ -7,7 +7,7 @@ from tslearn.utils import to_time_series_dataset
 import pandas as pd
 import numpy as np
 from tslearn.metrics import dtw
-from sklearn.metrics.pairwise import paired_euclidean_distances, pairwise_distances
+from sklearn.metrics.pairwise import euclidean_distances, pairwise_distances
 
 
 def load_Examples_from_file(filename):
@@ -25,24 +25,30 @@ class Examples:
     def __init__(self):
         self.train_data = []
         self.test_data = []
+        self.n_examples = 0
 
     def fill_from_snippets(self, snippets, test_share=.1):
         test_share = round(test_share * len(snippets))
         self.test_data = random.sample(snippets, test_share)
         self.train_data = [x for x in snippets if x not in self.test_data]
+        self.n_examples = len(self.test_data) + len(self.train_data)
 
     def to_ts_snippet(self):
         X_train = to_time_series_dataset([x.to_vector() for x in self.train_data])
-        X_test = to_time_series_dataset([x.to_vector() for x in self.test_data])
-        y_train = [to_time_series_dataset(x.label) for x in self.train_data]
-        y_test = [to_time_series_dataset(x.label) for x in self.test_data]
+        y_train = [x.label for x in self.train_data]
+        X_test = y_test = []
+        if len(self.test_data) > 0:
+            X_test = to_time_series_dataset([x.to_vector() for x in self.test_data])
+            y_test = [x.label for x in self.test_data]
         return X_train, X_test, y_train, y_test
 
     def split_examples(self):
-        X_train = [x.to_vector() for x in self.train_data]
-        X_test = [x.to_vector() for x in self.test_data]
-        y_train = [x.label for x in self.train_data]
-        y_test = [x.label for x in self.test_data]
+        X_train = np.array([x.to_vector() for x in self.train_data])
+        y_train = np.array([x.label for x in self.train_data])
+        X_test = y_test = None
+        if len(self.test_data) > 0:
+            X_test = np.array([x.to_vector() for x in self.test_data])
+            y_test = np.array([x.label for x in self.test_data])
         return X_train, X_test, y_train, y_test
 
     def reset_examples(self):
@@ -70,24 +76,36 @@ class Examples:
             cluster[l].train_data.append(self.train_data[idx])
         return cluster
 
+    def add_padding(self):
+        ts_size = [ts.time_series.shape[0] for ts in self.train_data]
+        ts_size.extend([ts.time_series.shape[0] for ts in self.test_data])
+        max_ts_size = max(ts_size)
+        for ts in self.train_data:
+            n_zeros = max_ts_size - ts.time_series.shape[0]
+            zeros = np.zeros(n_zeros)
+            ts.time_series = np.concatenate((zeros, ts.time_series))
+        for ts in self.test_data:
+            n_zeros = max_ts_size - ts.time_series.shape[0]
+            zeros = np.zeros(n_zeros)
+            ts.time_series = np.concatenate((zeros, ts.time_series))
+
     def to_distance_matrix(self, metric='dtw'):
+        X = [ts.to_vector() for ts in self.train_data]
+        size = len(X)
+        distance_matrix = np.zeros(shape=(size, size))
         if metric is 'dtw':
-            distance = dtw
+            for i in range(size):
+                for j in range(i, size):
+                    if i == j:
+                        d = 0
+                    else:
+                        d = dtw(X[i], X[j])
+                    distance_matrix[i, j] = d
+                    distance_matrix[j, i] = d
         elif metric is 'euclidean':
-            distance = paired_euclidean_distances
+            distance_matrix = euclidean_distances(X, X)
         else:
             return None
-        X = [ts.to_vector() for ts in self.train_data]
-        size = len(self.train_data)
-        distance_matrix = np.zeros(size, size)
-        for i in range(size):
-            for j in range(i, size):
-                if i == j:
-                    d = 0
-                else:
-                    d = dtw(X[i], X[j])
-                distance_matrix[i, j] = distance
-                distance_matrix[j, i] = distance
         return pairwise_distances(X=distance_matrix, metric='precomputed')
 
     def save_to_file(self, filename):
