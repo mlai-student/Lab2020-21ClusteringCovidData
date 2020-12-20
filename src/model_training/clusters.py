@@ -7,6 +7,7 @@ from pathlib import Path
 import pickle
 import os
 import plotly.express as px
+import pandas as pd
 
 import tslearn.clustering as ts
 
@@ -36,17 +37,15 @@ class GenericCluster:
         return plt
 
     def plot_geo_cluster(self):
-        figures = []
-        for c in self.clusters:
-            df = c.make_dataframe()
-            df_acc_cases = df.groupby(['countryterritoryCode'], as_index=False).sum()
-            fig = px.choropleth(df_acc_cases, locations="countryterritoryCode",
-                                color="cases",
-                                ) #color_continuous_scale="Reds"
-            fig.update_layout(
-                title=f"Clustermethod: {self.name}")
-            figures.append(fig)
-        return figures
+        dfs = [c.make_dataframe() for c in self.clusters]
+        df = pd.concat(dfs, ignore_index=True)
+        df_acc = df.groupby(['countryterritoryCode'], as_index=False).sum()
+        fig = px.choropleth(df_acc, locations="countryterritoryCode",
+                            color=self.labels,
+                            color_discrete_sequence=px.colors.qualitative.G10)
+        fig.update_layout(
+            title=f"Clustermethod: {self.name}, Number Clusters: {self.n_clusters}")
+        return fig
 
     def save_model(self, filename, save_data=False, examples=None):
         try:
@@ -54,7 +53,7 @@ class GenericCluster:
             Path("{}/{}".format(PROJECT_PATH, "/model/")).mkdir(parents=True, exist_ok=True)
             # Path("{}/{}/{}".format(PROJECT_PATH, "/model/", filename)).mkdir(parents=True, exist_ok=True)
             with open(PROJECT_PATH + "/model/" + filename, 'wb') as f:
-                pickle.dump(self.model, f)
+                pickle.dump(self, f)
             if save_data:
                 with open(PROJECT_PATH + "/model", "wb") as pkl_file:
                     pickle.dump(examples, pkl_file)
@@ -78,16 +77,27 @@ class GenericCluster:
 class KMedoids(GenericCluster):
     def __init__(self, n_clusters, metric):
         self.name = "KMedoids"
-        self.model = sk_extra.KMedoids(n_clusters=n_clusters, metric='precomputed', random_state=42)
+        if metric == "euclidean":
+            self.model = sk_extra.KMedoids(n_clusters=n_clusters, metric='euclidean', random_state=42)
+        else:
+            self.model = sk_extra.KMedoids(n_clusters=n_clusters, metric='precomputed', random_state=42)
         self.metric = metric
         self.n_clusters = n_clusters
 
     def preprocess(self, X: Examples):
-        return X.to_distance_matrix(metric=self.metric)
+        if self.metric == "dtw":
+            return X.to_distance_matrix(metric=self.metric)
+        elif self.metric == "euclidean":
+            X_train, X_test, y_train, y_test = X.split_examples()
+            if X_test:
+                return np.concatenate((X_train, X_test))
+            else:
+                return X_train
+        return None
 
 
 class KMeans(GenericCluster):
-    def __init__(self, n_clusters):
+    def __init__(self, n_clusters, metric=None):
         self.name = "KMeans"
         self.model = sk.KMeans(n_clusters=n_clusters, random_state=42)
         self.n_clusters = n_clusters
@@ -100,31 +110,30 @@ class KMeans(GenericCluster):
             return X_train
 
 
-class Agglomerative(GenericCluster):
-    def __init__(self, n_clusters, metric):
-        self.name = "Agglomerative_Cluster"
-        self.model = sk.AgglomerativeClustering(n_clusters=n_clusters, affinity='precomputed', linkage="average")
-
-    def preprocess(self, X):
-        if self.metric == ["dtw", "euclidean"]:
-            return X.to_distance_matrix(metric=self.metric)
-        return None
-
-
 class DBSCAN(GenericCluster):
     def __init__(self, eps, metric):
         self.name = "DBSCAN"
-        self.model = sk.DBSCAN(eps=eps, metric="precomputed")
+        if metric == "euclidean":
+            self.model = sk.DBSCAN(eps=eps, metric='euclidean')
+        else:
+            self.model = sk.DBSCAN(eps=eps, metric='precomputed')
         self.metric = metric
+        self.n_clusters = eps
 
-    def preprocess(self, X: Examples):
-        if self.metric == ["dtw", "euclidean"]:
+    def preprocess(self, X):
+        if self.metric == "dtw":
             return X.to_distance_matrix(metric=self.metric)
+        elif self.metric == "euclidean":
+            X_train, X_test, y_train, y_test = X.split_examples()
+            if X_test:
+                return np.concatenate((X_train, X_test))
+            else:
+                return X_train
         return None
 
 
 class TS_KernelKMeans(GenericCluster):
-    def __init__(self, n_clusters):
+    def __init__(self, n_clusters, metric=None):
         self.name = "TS_KernelKMeans"
         self.model = ts.KernelKMeans(n_clusters=n_clusters, kernel="gak", random_state=42)
         self.n_clusters = n_clusters
@@ -138,7 +147,7 @@ class TS_KernelKMeans(GenericCluster):
 
 
 class TS_KShape(GenericCluster):
-    def __init__(self, n_clusters):
+    def __init__(self, n_clusters, metric=None):
         self.name = "TS_KShape"
         self.model = ts.KShape(n_clusters=n_clusters)
         self.n_clusters = n_clusters

@@ -36,7 +36,7 @@ class Examples:
     def to_ts_snippet(self):
         X_train = to_time_series_dataset([x.to_vector() for x in self.train_data])
         y_train = [x.label for x in self.train_data]
-        X_test = y_test = []
+        X_test = y_test = None
         if len(self.test_data) > 0:
             X_test = to_time_series_dataset([x.to_vector() for x in self.test_data])
             y_test = [x.label for x in self.test_data]
@@ -47,7 +47,7 @@ class Examples:
         y_train = np.array([x.label for x in self.train_data])
         X_test = y_test = None
         if len(self.test_data) > 0:
-            X_test = np.array([x.to_vector() for x in self.test_data])
+            X_test = np.asarray([x.to_vector() for x in self.test_data])
             y_test = np.array([x.label for x in self.test_data])
         return X_train, X_test, y_train, y_test
 
@@ -108,7 +108,7 @@ class Examples:
                     distance_matrix[i, j] = d
                     distance_matrix[j, i] = d
         elif metric is 'euclidean':
-            distance_matrix = euclidean_distances(X, X)
+            distance_matrix = euclidean_distances(np.asarray(X), np.asarray(X))
         else:
             return None
         return pairwise_distances(X=distance_matrix, metric='precomputed')
