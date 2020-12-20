@@ -6,6 +6,7 @@ from datetime import date
 from pathlib import Path
 import pickle
 import os
+import plotly.express as px
 
 import tslearn.clustering as ts
 
@@ -19,7 +20,7 @@ class GenericCluster:
     def fit(self, X: Examples):
         self.model.fit(self.preprocess(X))
         self.labels = self.model.labels_
-        self.clusters = X.divide_by_label(self.n_clusters, labels=self.labels)
+        self.clusters, self.n_per_clusters = X.divide_by_label(self.n_clusters, labels=self.labels)
         return self
 
     def plot_cluster(self):
@@ -33,6 +34,19 @@ class GenericCluster:
                 axs[i].plot(ts.time_series, c=cl_color)
                 axs[i].set_title(str(len(cl.train_data)))
         return plt
+
+    def plot_geo_cluster(self):
+        figures = []
+        for c in self.clusters:
+            df = c.make_dataframe()
+            df_acc_cases = df.groupby(['countryterritoryCode'], as_index=False).sum()
+            fig = px.choropleth(df_acc_cases, locations="countryterritoryCode",
+                                color="cases",
+                                ) #color_continuous_scale="Reds"
+            fig.update_layout(
+                title=f"Clustermethod: {self.name}")
+            figures.append(fig)
+        return figures
 
     def save_model(self, save_data=False, examples=None):
         try:
@@ -51,9 +65,19 @@ class GenericCluster:
     def preprocess(self, X: Examples):
         pass
 
+    def statistics(self):
+        mu = sum([len(c.train_data) for c in self.clusters])/self.n_clusters
+        var = sum([(c - mu)**2 for c in self.n_per_clusters])/self.n_clusters
+        max_n_cluster = max(self.n_per_clusters)
+        min_n_cluster = min(self.n_per_clusters)
+        print(f"Statistic Report for: {self.name} with {self.n_clusters} different clusters")
+        print(f"Expected Value: {mu} Variance: {var}\nBiggest Cluster: {max_n_cluster}, Smallest Cluster: {min_n_cluster}")
+
+
 
 class KMedoids(GenericCluster):
     def __init__(self, n_clusters, metric):
+        self.name = "KMedoids"
         self.model = sk_extra.KMedoids(n_clusters=n_clusters, metric='precomputed', random_state=42)
         self.metric = metric
         self.n_clusters = n_clusters
@@ -64,6 +88,7 @@ class KMedoids(GenericCluster):
 
 class KMeans(GenericCluster):
     def __init__(self, n_clusters):
+        self.name = "KMeans"
         self.model = sk.KMeans(n_clusters=n_clusters, random_state=42)
         self.n_clusters = n_clusters
 
@@ -77,6 +102,7 @@ class KMeans(GenericCluster):
 
 class Agglomerative(GenericCluster):
     def __init__(self, n_clusters, metric):
+        self.name = "Agglomerative Cluster"
         self.model = sk.AgglomerativeClustering(n_clusters=n_clusters, affinity='precomputed', linkage="average")
 
     def preprocess(self, X):
@@ -87,6 +113,7 @@ class Agglomerative(GenericCluster):
 
 class DBSCAN(GenericCluster):
     def __init__(self, eps, metric):
+        self.name = "DBSCAN"
         self.model = sk.DBSCAN(eps=eps, metric="precomputed")
         self.metric = metric
 
@@ -98,6 +125,7 @@ class DBSCAN(GenericCluster):
 
 class TS_KernelKMeans(GenericCluster):
     def __init__(self, n_clusters):
+        self.name = "TS KernelKMeans"
         self.model = ts.KernelKMeans(n_clusters=n_clusters, kernel="gak", random_state=42)
         self.n_clusters = n_clusters
 
@@ -111,6 +139,7 @@ class TS_KernelKMeans(GenericCluster):
 
 class TS_KShape(GenericCluster):
     def __init__(self, n_clusters):
+        self.name = "TS KShape"
         self.model = ts.KShape(n_clusters=n_clusters)
         self.n_clusters = n_clusters
 
@@ -124,6 +153,7 @@ class TS_KShape(GenericCluster):
 
 class TS_KMeans(GenericCluster):
     def __init__(self, n_clusters, metric):
+        self.name = "TS KMeans"
         self.model = ts.TimeSeriesKMeans(n_clusters=n_clusters, metric=metric)
         self.n_clusters = n_clusters
 

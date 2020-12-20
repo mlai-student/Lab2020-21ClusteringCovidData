@@ -84,7 +84,7 @@ def make_total_ts(ecdc_df, data_gen_config):
                     continue
                 else:
                     ts = output
-            examples.append(Snippet(ts, None, country_id = country_code, country=country_name, continent=continent, ascending=True))
+            examples.append(Snippet(ts, None, country_id=country_code, country=country_name, continent=continent, ascending=True))
     except Exception as Argument:
         logging.error("Storing time series failed with following message:")
         logging.error(str(Argument))

@@ -59,22 +59,27 @@ class Examples:
         ts_list = []
         country_list = []
         continent_list = []
+        country_id_list = []
         for snippet in self.train_data:
             length = snippet.time_series.size
             ts_list.extend(snippet.time_series)
             country_list.extend(([snippet.country] * length))
+            country_id_list.extend(([snippet.country_id] * length))
             continent_list.extend([snippet.continent] * length)
         cases_dict = {'cases': ts_list,
                 'countriesAndTerritories': country_list,
+                'countryterritoryCode': country_id_list,
                 'continentExp': continent_list}
-        df = pd.DataFrame(cases_dict, columns=['cases', 'countriesAndTerritories', 'continentExp'])
+        df = pd.DataFrame(cases_dict, columns=['cases', 'countriesAndTerritories', 'countryterritoryCode', 'continentExp'])
         return df
 
-    def divide_by_label(self, n_cluster, labels):
+    def divide_by_label(self, n_cluster, labels) -> list:
         cluster = [Examples() for _ in range(n_cluster)]
         for idx, l in enumerate(labels):
-            cluster[l].train_data.append(self.train_data[idx])
-        return cluster
+            data = self.train_data[idx]
+            cluster[l].train_data.append(data)
+        n_per_clusters = [len(c.train_data) + len(c.test_data) for c in cluster]
+        return cluster, n_per_clusters
 
     def add_padding(self):
         ts_size = [ts.time_series.shape[0] for ts in self.train_data]

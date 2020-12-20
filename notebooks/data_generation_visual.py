@@ -41,8 +41,8 @@ log_file.close()
 
 # %%
 # name of the folder where the output of the Example class file is located
-DATA_GEN_FOLDER_NAME = "Dec-12-2020"
-EXAMPLES_DATASET_PATH = PROJECT_PATH + "data/" + DATA_GEN_FOLDER_NAME + "/total_snippets"
+DATA_GEN_FOLDER_NAME = "Dec-20-2020"
+EXAMPLES_DATASET_PATH = PROJECT_PATH + "data/" + DATA_GEN_FOLDER_NAME + "/1"
 
 snippets = load_Examples_from_file(EXAMPLES_DATASET_PATH)
 
