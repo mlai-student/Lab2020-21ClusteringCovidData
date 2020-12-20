@@ -1,12 +1,13 @@
 import numpy as np
 
 class Snippet:
-    def __init__(self, ts: np.array, label, country=None, continent=None, ascending=False):
+    def __init__(self, ts: np.array, label, country_id = None, country=None, continent=None, ascending=False):
         self.time_series = ts
         if ascending:
             self.time_series = np.flipud(self.time_series)
         self.label = label
         self.temperature = None
+        self.country_id = country_id
         self.country = country
         self.continent = continent
 

@@ -74,6 +74,7 @@ def make_total_ts(ecdc_df, data_gen_config):
             ts = np.array(country[1]['cases'].array)
             if data_gen_config.getboolean("replace_negative_values_w_zero"):
                 ts[ts <0] =0
+            country_code = country[1]['countryterritoryCode'].array[0]
             country_name = country[1]['countriesAndTerritories'].array[0]
             continent = country[1]['continentExp'].array[0]
             #if smoothing is wanted every value gets replaced by the nr_days_for_avg mean
@@ -83,7 +84,7 @@ def make_total_ts(ecdc_df, data_gen_config):
                     continue
                 else:
                     ts = output
-            examples.append(Snippet(ts, None, country=country_name, continent=continent, ascending=True))
+            examples.append(Snippet(ts, None, country_id = country_code, country=country_name, continent=continent, ascending=True))
     except Exception as Argument:
         logging.error("Storing time series failed with following message:")
         logging.error(str(Argument))

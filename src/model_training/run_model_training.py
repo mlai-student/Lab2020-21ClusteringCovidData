@@ -1,13 +1,12 @@
 import logging
 from src.data_representation.Examples import load_Examples_from_file
 
-def run_model_training_main(filename, train_config, examples=None, models=None, cluster=None, no_clusters=None):
+def run_model_training_main(filename, train_config):
     logging.debug("model_training.Run_model_training started main")
-    if examples is None:
-        try:
-            examples = load_Examples_from_file(train_config["data_path"] + filename)
-        except Exception as Argument:
-            logging.error("Could not open file")
+    try:
+        examples = load_Examples_from_file(train_config["data_path"] + filename)
+    except Exception as Argument:
+        logging.error("Could not open file")
 
     logging.debug("model_training.Run_model_training ended main")
 #
