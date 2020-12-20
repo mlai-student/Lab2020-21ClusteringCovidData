@@ -48,15 +48,15 @@ class GenericCluster:
             figures.append(fig)
         return figures
 
-    def save_model(self, save_data=False, examples=None):
+    def save_model(self, filename, save_data=False, examples=None):
         try:
-            today = date.today().strftime("%b-%d-%Y")
-            Path("data/" + today).mkdir(parents=True, exist_ok=True)
-            Path("data/{}/{}".format(today, "model")).mkdir(parents=True, exist_ok=True)
-            self.model.to_pickle("data/{}/{}/{}".format(today, "model", str(self.model.__class__.__name__)))
+            PROJECT_PATH = os.getcwd().replace("notebooks", "") + "data/" + date.today().strftime("%b-%d-%Y")
+            Path("{}/{}".format(PROJECT_PATH, "/model/")).mkdir(parents=True, exist_ok=True)
+            # Path("{}/{}/{}".format(PROJECT_PATH, "/model/", filename)).mkdir(parents=True, exist_ok=True)
+            with open(PROJECT_PATH + "/model/" + filename, 'wb') as f:
+                pickle.dump(self.model, f)
             if save_data:
-                with open("data/{}/{}/{}_{}".format(today, "model",
-                                                    str(self.model.__class__.__name__), "data"), "wb") as pkl_file:
+                with open(PROJECT_PATH + "/model", "wb") as pkl_file:
                     pickle.dump(examples, pkl_file)
         except Exception as Argument:
             logging.error("Saving model file failed with following message:")
@@ -102,7 +102,7 @@ class KMeans(GenericCluster):
 
 class Agglomerative(GenericCluster):
     def __init__(self, n_clusters, metric):
-        self.name = "Agglomerative Cluster"
+        self.name = "Agglomerative_Cluster"
         self.model = sk.AgglomerativeClustering(n_clusters=n_clusters, affinity='precomputed', linkage="average")
 
     def preprocess(self, X):
@@ -125,7 +125,7 @@ class DBSCAN(GenericCluster):
 
 class TS_KernelKMeans(GenericCluster):
     def __init__(self, n_clusters):
-        self.name = "TS KernelKMeans"
+        self.name = "TS_KernelKMeans"
         self.model = ts.KernelKMeans(n_clusters=n_clusters, kernel="gak", random_state=42)
         self.n_clusters = n_clusters
 
@@ -139,7 +139,7 @@ class TS_KernelKMeans(GenericCluster):
 
 class TS_KShape(GenericCluster):
     def __init__(self, n_clusters):
-        self.name = "TS KShape"
+        self.name = "TS_KShape"
         self.model = ts.KShape(n_clusters=n_clusters)
         self.n_clusters = n_clusters
 
@@ -153,7 +153,7 @@ class TS_KShape(GenericCluster):
 
 class TS_KMeans(GenericCluster):
     def __init__(self, n_clusters, metric):
-        self.name = "TS KMeans"
+        self.name = "TS_KMeans"
         self.model = ts.TimeSeriesKMeans(n_clusters=n_clusters, metric=metric)
         self.n_clusters = n_clusters
 
