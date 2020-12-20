@@ -10,23 +10,22 @@ from src.data_generation.smoothing import smooth_timeline
 from src.data_generation.augmentation import  data_augmentation
 
 # start the data generating process with a configuration set given
-def run_data_generating_main(data_gen_config):
+def run_data_generating_main(data_gen_config, filename):
     logging.debug("data_generating.Run_data_generating started main")
     # first get the raw data from ecdc csv using the url from config file
     df = get_ecdc_dataset(data_gen_config)
     # TODO replace/fill NaN and resize cases but only after analysis beforehand -> control by config ini
     df = df[~(df["popData2019"].isnull())]
-    df["cases_per_pop"] = df["cases"] / df["popData2019"] * 100
+    if data_gen_config.getboolean("divide_by_country_population"):
+        df["cases"] = df["cases"] / df["popData2019"] * 100
     df.fillna(0, inplace=True)
     save_data_frame(df)
 
-    filename = "snippets"
     snippet_examples = Examples()
 
     if data_gen_config.getboolean("complete_cluster"):
         total_snippets = make_total_ts(df, data_gen_config)
         snippet_examples.fill_from_snippets(total_snippets, test_share=0.)
-        filename = "total_snippets"
         test_df = snippet_examples.make_dataframe()
     else:
         snippets = divide_ecdc_data_into_snippets(df, data_gen_config)
@@ -68,7 +67,7 @@ def save_data_frame(df):
 def make_total_ts(ecdc_df, data_gen_config):
     examples = []
     try:
-        country_group = ecdc_df[['dateRep', 'countriesAndTerritories', 'continentExp', 'cases']] \
+        country_group = ecdc_df[['dateRep', 'countriesAndTerritories','countryterritoryCode',  'continentExp', 'cases']] \
             .groupby(['countriesAndTerritories'], as_index=False)
         for country in country_group:
             ts = np.array(country[1]['cases'].array)
