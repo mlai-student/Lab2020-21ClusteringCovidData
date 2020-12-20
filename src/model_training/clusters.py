@@ -76,7 +76,7 @@ class KMeans(GenericCluster):
 
 
 class Agglomerative(GenericCluster):
-    def __init__(self, n_clusters, metrix):
+    def __init__(self, n_clusters, metric):
         self.model = sk.AgglomerativeClustering(n_clusters=n_clusters, affinity='precomputed', linkage="average")
 
     def preprocess(self, X):
@@ -87,7 +87,7 @@ class Agglomerative(GenericCluster):
 
 class DBSCAN(GenericCluster):
     def __init__(self, eps, metric):
-        self.model = sk.DBSCAN(eps=eps, metric="preprocessed")
+        self.model = sk.DBSCAN(eps=eps, metric="precomputed")
         self.metric = metric
 
     def preprocess(self, X: Examples):
