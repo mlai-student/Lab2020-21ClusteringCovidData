@@ -119,6 +119,7 @@ class DBSCAN(GenericCluster):
             self.model = sk.DBSCAN(eps=eps, metric='precomputed')
         self.metric = metric
         self.n_clusters = eps
+        self.eps = eps
 
     def preprocess(self, X):
         if self.metric == "dtw":
@@ -131,6 +132,8 @@ class DBSCAN(GenericCluster):
                 return X_train
         return None
 
+    def update_clusters(self):
+        self.n_clusters = len(set(self.labels)) - (1 if -1 in self.labels else 0)
 
 class TS_KernelKMeans(GenericCluster):
     def __init__(self, n_clusters, metric=None):
