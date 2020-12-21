@@ -64,13 +64,15 @@ class GenericCluster:
     def preprocess(self, X: Examples):
         pass
 
-    def statistics(self):
+    def statistics(self, verbose=False):
         mu = sum([len(c.train_data) for c in self.clusters])/self.n_clusters
-        var = sum([(c - mu)**2 for c in self.n_per_clusters])/self.n_clusters
+        var = np.var(self.n_per_clusters) #sum([(c - mu)**2 for c in self.n_per_clusters])/self.n_clusters
         max_n_cluster = max(self.n_per_clusters)
         min_n_cluster = min(self.n_per_clusters)
-        print(f"Statistic Report for: {self.name} with {self.n_clusters} different clusters")
-        print(f"Expected Value: {mu} Variance: {var}\nBiggest Cluster: {max_n_cluster}, Smallest Cluster: {min_n_cluster}")
+        if verbose:
+            print(f"Statistic Report for: {self.name} with {self.n_clusters} different clusters")
+            print(f"Expected Value: {mu} Variance: {var}\nBiggest Cluster: {max_n_cluster}, Smallest Cluster: {min_n_cluster}")
+        return var, max_n_cluster, min_n_cluster
 
 
 
