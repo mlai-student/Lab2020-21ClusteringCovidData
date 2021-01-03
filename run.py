@@ -5,6 +5,9 @@ import os
 import pandas as pd
 import json
 import itertools
+from datetime import date
+from pathlib import Path
+import numpy as np
 from src.data_generation.run_data_generating import run_data_generating_main
 from src.model_training.run_model_training import run_model_training_main
 from src.model_prediction.run_model_prediction import run_model_prediction_main
@@ -47,7 +50,10 @@ def main(path_to_cfg):
     if os.path.exists(run_log_filename):
         os.remove(run_log_filename)
     logging.basicConfig(filename=run_log_filename, level=logging.DEBUG)
-
+    #basis for filenames later on
+    today = date.today().strftime("%b-%d-%Y")
+    Path("data/" + today).mkdir(parents=True, exist_ok=True)
+    foldername = "data/{}/".format(today)
     overview_file = pd.DataFrame([], columns = ["divide_by_country_population", "do_smoothing","nr_days_for_avg", "do_data_augmentation", "percent_varianz","filename"])
     #go through all required cominations defined in config.ini
     #possible variables for combinations:
@@ -62,11 +68,20 @@ def main(path_to_cfg):
     #run project with adjustet config and save output with given filename
 
     config_comb = list(itertools.product(lst_divide_by_country_population,
-        lst_do_smoothing,
-        lst_nr_days_for_avg,
-        lst_do_data_augmentation,
-        lst_percent_varianz))
+        lst_do_smoothing, lst_nr_days_for_avg,
+        lst_do_data_augmentation, lst_percent_varianz))
+    #attention not create not nessasary rows
+    comb_lists = []
     for i, comb in enumerate(config_comb):
+        comb_list = list(comb)
+        if comb_list[1] == "no":
+            comb_list[2] = -1
+        if comb_list[3] == "no":
+            comb_list[4] = -1
+        if comb_list not in comb_lists:
+            comb_lists.append(comb_list)
+
+    for i, comb in enumerate(comb_lists):
         print("Run project with settings: " + str(comb))
         logging.info("Run project with settings: " + str(comb))
         main_config["data_generating_settings"]["divide_by_country_population"] = str(comb[0])
@@ -74,15 +89,13 @@ def main(path_to_cfg):
         main_config["data_generating_settings"]["nr_days_for_avg"] = str(comb[2])
         main_config["data_generating_settings"]["do_data_augmentation"] = str(comb[3])
         main_config["data_generating_settings"]["percent_varianz"] = str(comb[4])
-        filename = str(i)
+        filename = foldername + str(i)
         run_project_w_unique_config(main_config, filename)
         new_row = pd.Series(list(comb) +[filename], index = overview_file.columns)
         overview_file = overview_file.append(new_row, ignore_index=True)
         print("Done")
-        #TODO discard multiple solutions
 
-    #TODO set to correct location
-    overview_file.to_csv("overview.csv")
+    overview_file.to_csv(foldername + "overview.csv")
     logging.shutdown()
     return 0
 
