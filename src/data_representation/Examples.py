@@ -1,8 +1,6 @@
 import pickle
 import random
 import logging
-from datetime import date
-from pathlib import Path
 from tslearn.utils import to_time_series_dataset
 import pandas as pd
 import numpy as np
@@ -124,9 +122,7 @@ class Examples:
 
     def save_to_file(self, filename):
         try:
-            today = date.today().strftime("%b-%d-%Y")
-            Path("data/" + today).mkdir(parents=True, exist_ok=True)
-            pkl_file = open("data/{}/{}".format(today, filename), "wb")
+            pkl_file = open(filename, "wb")
             pickle.dump(self, pkl_file)
             pkl_file.close()
         except Exception as Argument:
