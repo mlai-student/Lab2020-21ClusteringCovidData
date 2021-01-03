@@ -41,7 +41,6 @@ class Examples:
             self.add_information_distance_functions = get_additional_information_distance_functions(data_gen_config)
 
 
-
     def to_ts_snippet(self):
         X_train = to_time_series_dataset([x.to_vector() for x in self.train_data])
         y_train = [x.label for x in self.train_data]
