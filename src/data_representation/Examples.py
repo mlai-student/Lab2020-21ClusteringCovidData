@@ -9,6 +9,8 @@ import numpy as np
 from tslearn.metrics import dtw
 from sklearn.metrics.pairwise import euclidean_distances, pairwise_distances
 
+from src.data_generation.get_additional_info import get_additional_information_distance_functions
+
 
 def load_Examples_from_file(filename):
     # read the pickle file
@@ -27,11 +29,18 @@ class Examples:
         self.test_data = []
         self.n_examples = 0
 
-    def fill_from_snippets(self, snippets, test_share=.1):
+        self.additional_information_distance_functions = {}
+
+    def fill_from_snippets(self, snippets, test_share=.1, data_gen_config=None):
         test_share = round(test_share * len(snippets))
         self.test_data = random.sample(snippets, test_share)
         self.train_data = [x for x in snippets if x not in self.test_data]
         self.n_examples = len(self.test_data) + len(self.train_data)
+
+        if data_gen_config is not None:
+            self.add_information_distance_functions = get_additional_information_distance_functions(data_gen_config)
+
+
 
     def to_ts_snippet(self):
         X_train = to_time_series_dataset([x.to_vector() for x in self.train_data])
