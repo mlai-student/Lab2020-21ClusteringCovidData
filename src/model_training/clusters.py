@@ -13,6 +13,7 @@ import tslearn.clustering as ts
 
 import sklearn.cluster as sk
 import sklearn_extra.cluster as sk_extra
+from sklearn.metrics import silhouette_score, calinski_harabasz_score, davies_bouldin_score
 
 from src.data_representation.Examples import Examples
 
@@ -25,7 +26,7 @@ class GenericCluster:
         return self
 
     def plot_cluster(self):
-        fig, axs = plt.subplots(self.n_clusters, figsize=(12,self.n_clusters*3))
+        fig, axs = plt.subplots(self.n_clusters, figsize=(12, self.n_clusters * 3))
         fig.suptitle('Clusters')
 
         for i, cl in enumerate(self.clusters):
@@ -47,15 +48,15 @@ class GenericCluster:
             title=f"Clustermethod: {self.name}, Number Clusters: {self.n_clusters}")
         return fig
 
-    def save_model(self, filename, save_data=False, examples=None):
+    def save_model(self, data_path, filename, save_data=False, examples=None):
         try:
-            PROJECT_PATH = os.getcwd().replace("notebooks", "") + "data/" + date.today().strftime("%b-%d-%Y")
-            Path("{}/{}".format(PROJECT_PATH, "/model/")).mkdir(parents=True, exist_ok=True)
+            # PROJECT_PATH = os.getcwd().replace("notebooks", "") + "data/" + date.today().strftime("%b-%d-%Y")
+            Path("{}/{}".format(data_path, "/model/")).mkdir(parents=True, exist_ok=True)
             # Path("{}/{}/{}".format(PROJECT_PATH, "/model/", filename)).mkdir(parents=True, exist_ok=True)
-            with open(PROJECT_PATH + "/model/" + filename, 'wb') as f:
+            with open(data_path + "/model/" + filename, 'wb') as f:
                 pickle.dump(self, f)
             if save_data:
-                with open(PROJECT_PATH + "/model", "wb") as pkl_file:
+                with open(data_path + "/model", "wb") as pkl_file:
                     pickle.dump(examples, pkl_file)
         except Exception as Argument:
             logging.error("Saving model file failed with following message:")
@@ -64,16 +65,49 @@ class GenericCluster:
     def preprocess(self, X: Examples):
         pass
 
+    def get_examples_from_cluster(self):
+        X = Examples()
+        for ex in self.clusters:
+            X.concat_from_example(ex)
+        return X
+
+    def silhouette(self):
+        try:
+            X = self.get_examples_from_cluster()
+            X_train, _, _, _ = X.split_examples()
+            return silhouette_score(X_train, labels=self.labels, metric='euclidean', random_state=42)
+        except Exception as Argument:
+            logging.error("Computing silhouette score failed with following message:")
+            logging.error(str(Argument))
+
+    def calinski(self):
+        try:
+            X = self.get_examples_from_cluster()
+            X_train, _, _, _ = X.split_examples()
+            return calinski_harabasz_score(X_train, labels=self.labels)
+        except Exception as Argument:
+            logging.error("Computing silhouette score failed with following message:")
+            logging.error(str(Argument))
+
+    def davies(self):
+        try:
+            X = self.get_examples_from_cluster()
+            X_train, _, _, _ = X.split_examples()
+            return davies_bouldin_score(X_train, labels=self.labels)
+        except Exception as Argument:
+            logging.error("Computing silhouette score failed with following message:")
+            logging.error(str(Argument))
+
     def statistics(self, verbose=False):
-        mu = sum([len(c.train_data) for c in self.clusters])/self.n_clusters
-        var = np.var(self.n_per_clusters) #sum([(c - mu)**2 for c in self.n_per_clusters])/self.n_clusters
+        mu = sum([len(c.train_data) for c in self.clusters]) / self.n_clusters
+        var = np.var(self.n_per_clusters)
         max_n_cluster = max(self.n_per_clusters)
         min_n_cluster = min(self.n_per_clusters)
         if verbose:
             print(f"Statistic Report for: {self.name} with {self.n_clusters} different clusters")
-            print(f"Expected Value: {mu} Variance: {var}\nBiggest Cluster: {max_n_cluster}, Smallest Cluster: {min_n_cluster}")
+            print(
+                f"Expected Value: {mu} Variance: {var}\nBiggest Cluster: {max_n_cluster}, Smallest Cluster: {min_n_cluster}")
         return var, max_n_cluster, min_n_cluster
-
 
 
 class KMedoids(GenericCluster):
@@ -136,6 +170,7 @@ class DBSCAN(GenericCluster):
 
     def update_clusters(self):
         self.n_clusters = len(set(self.labels)) - (1 if -1 in self.labels else 0)
+
 
 class TS_KernelKMeans(GenericCluster):
     def __init__(self, n_clusters, metric=None):

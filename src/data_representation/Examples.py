@@ -38,6 +38,10 @@ class Examples:
         if data_gen_config is not None:
             self.add_information_distance_functions = get_additional_information_distance_functions(data_gen_config)
 
+    def concat_from_example(self, other):
+        self.train_data.extend(other.train_data)
+        self.test_data.extend(other.test_data)
+        self.n_examples += other.n_examples
 
     def to_ts_snippet(self):
         X_train = to_time_series_dataset([x.to_vector() for x in self.train_data])
@@ -79,7 +83,7 @@ class Examples:
         df = pd.DataFrame(cases_dict, columns=['cases', 'countriesAndTerritories', 'countryterritoryCode', 'continentExp'])
         return df
 
-    def divide_by_label(self, n_cluster, labels) -> list:
+    def divide_by_label(self, n_cluster, labels) -> (list, int):
         cluster = [Examples() for _ in range(n_cluster)]
         for idx, l in enumerate(labels):
             data = self.train_data[idx]

@@ -6,13 +6,12 @@ from src.data_generation.import_data import get_ecdc_dataset
 
 #get additional snippet info as described in config
 def get_additional_info(country_code, data_gen_config):
-
     categories = json.loads(data_gen_config["add_additional_info"])
     output = {}
     #add all the wanted categories
     for cat in categories:
         if cat[0] == "Population":
-            output["Populaton"] = get_pop_data(country_code, cat, data_gen_config)
+            output["Population"] = get_pop_data(country_code, cat, data_gen_config)
     return output
 
 
@@ -35,5 +34,5 @@ def get_additional_information_distance_functions(data_gen_config):
     #add all the wanted categories
     for cat in categories:
         if cat[0] == "Population":
-            output["Populaton"] = pop_dist_fct
+            output["Population"] = pop_dist_fct
     return output
