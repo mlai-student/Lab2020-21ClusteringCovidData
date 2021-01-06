@@ -11,7 +11,7 @@ class Snippet:
         self.country = country
         self.continent = continent
         #dict to store additional info for snippet -> for each label (temp etc) should be an corresponding distance function saved in the corresproding Examples file
-        self.additonal_info = additional_info
+        self.additional_info = additional_info
 
     def to_vector(self, only_ts=True) -> np.array:
         if only_ts:

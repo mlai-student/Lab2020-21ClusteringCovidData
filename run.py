@@ -65,13 +65,14 @@ def main(path_to_cfg):
     # missing choosed method -> still open to implement
     lst_do_data_augmentation = json.loads(main_config["data_generating_settings"]["do_data_augmentation"])
     lst_percent_varianz = json.loads(main_config["data_generating_settings"]["percent_varianz"])
+    metric = json.loads(main_config["model_training_settings"]["metric"])
     # copy main config and go through all possible compinations of them above:
     # remove not possible combinations like do_smoothing with a smoothin param
     # run project with adjustet config and save output with given filename
 
     config_comb = list(itertools.product(lst_divide_by_country_population,
                                          lst_do_smoothing, lst_nr_days_for_avg,
-                                         lst_do_data_augmentation, lst_percent_varianz))
+                                         lst_do_data_augmentation, lst_percent_varianz, metric))
     # attention not create not nessasary rows
     comb_lists = []
     for i, comb in enumerate(config_comb):
@@ -94,10 +95,11 @@ def main(path_to_cfg):
         main_config["data_generating_settings"]["nr_days_for_avg"] = str(comb[2])
         main_config["data_generating_settings"]["do_data_augmentation"] = str(comb[3])
         main_config["data_generating_settings"]["percent_varianz"] = str(comb[4])
+        main_config["model_training_settings"]["metric"] = str(comb[5])
 
         filename = foldername + str(i)
         run_project_w_unique_config(main_config, filename)
-        new_row = pd.Series(list(comb) + [filename], index=overview_file.columns)
+        new_row = pd.Series(list(comb)[:-1] + [filename], index=overview_file.columns)
         overview_file = overview_file.append(new_row, ignore_index=True)
         print("Done")
 

@@ -71,29 +71,44 @@ class GenericCluster:
             X.concat_from_example(ex)
         return X
 
-    def silhouette(self):
+    def silhouette(self, metric=None, use_add_info=False, key="Population"):
         try:
             X = self.get_examples_from_cluster()
-            X_train, _, _, _ = X.split_examples()
-            return silhouette_score(X_train, labels=self.labels, metric='euclidean', random_state=42)
+            if use_add_info:
+                X_add_info = np.array([sn.additional_info[key] for sn in X.train_data]).reshape(-1, 1)
+                return silhouette_score(X_add_info, labels=self.labels,
+                                        metric=metric if metric is not None else "euclidean", random_state=42)
+            else:
+                X_train, _, _, _ = X.split_examples()
+                return silhouette_score(X_train, labels=self.labels,
+                                        metric=metric if metric is not None else "euclidean", random_state=42)
         except Exception as Argument:
             logging.error("Computing silhouette score failed with following message:")
             logging.error(str(Argument))
 
-    def calinski(self):
+    def calinski(self, use_add_info=False, key="Population"):
         try:
             X = self.get_examples_from_cluster()
-            X_train, _, _, _ = X.split_examples()
-            return calinski_harabasz_score(X_train, labels=self.labels)
+            if use_add_info:
+                X_add_info = np.array([sn.additional_info[key] for sn in X.train_data]).reshape(-1, 1)
+                return calinski_harabasz_score(X_add_info, labels=self.labels)
+            else:
+                X_train, _, _, _ = X.split_examples()
+                return calinski_harabasz_score(X_train, labels=self.labels)
         except Exception as Argument:
             logging.error("Computing silhouette score failed with following message:")
             logging.error(str(Argument))
 
-    def davies(self):
+    def davies(self, use_add_info=False, key="Population"):
         try:
             X = self.get_examples_from_cluster()
-            X_train, _, _, _ = X.split_examples()
-            return davies_bouldin_score(X_train, labels=self.labels)
+            if use_add_info:
+                X_add_info = np.array([sn.additional_info[key] for sn in X.train_data]).reshape(-1, 1)
+                return davies_bouldin_score(X_add_info, labels=self.labels)
+            else:
+                X_train, _, _, _ = X.split_examples()
+                return davies_bouldin_score(X_train, labels=self.labels)
+
         except Exception as Argument:
             logging.error("Computing silhouette score failed with following message:")
             logging.error(str(Argument))
@@ -137,6 +152,7 @@ class KMeans(GenericCluster):
         self.name = "KMeans"
         self.model = sk.KMeans(n_clusters=n_clusters, random_state=42)
         self.n_clusters = n_clusters
+        self.metric = ""
 
     def preprocess(self, X: Examples):
         X_train, X_test, y_train, y_test = X.split_examples()
@@ -177,6 +193,7 @@ class TS_KernelKMeans(GenericCluster):
         self.name = "TS_KernelKMeans"
         self.model = ts.KernelKMeans(n_clusters=n_clusters, kernel="gak", random_state=42)
         self.n_clusters = n_clusters
+        self.metric = "dtw"
 
     def preprocess(self, X: Examples):
         X_train, X_test, y_train, y_test = X.to_ts_snippet()
@@ -191,6 +208,7 @@ class TS_KShape(GenericCluster):
         self.name = "TS_KShape"
         self.model = ts.KShape(n_clusters=n_clusters)
         self.n_clusters = n_clusters
+        self.metric = "dtw"
 
     def preprocess(self, X: Examples):
         X_train, X_test, y_train, y_test = X.to_ts_snippet()
