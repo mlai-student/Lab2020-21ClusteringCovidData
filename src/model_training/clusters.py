@@ -79,9 +79,13 @@ class GenericCluster:
                 return silhouette_score(X_add_info, labels=self.labels,
                                         metric=metric if metric is not None else "euclidean", random_state=42)
             else:
-                X_train, _, _, _ = X.split_examples()
-                return silhouette_score(X_train, labels=self.labels,
-                                        metric=metric if metric is not None else "euclidean", random_state=42)
+                if metric == "euclidean" or None:
+                    X_train, _, _, _ = X.split_examples()
+                    return silhouette_score(X_train, labels=self.labels,
+                                            metric="euclidean", random_state=42)
+                elif metric == "dtw":
+                    return silhouette_score(X.to_distance_matrix(metric="dtw"), labels=self.labels,
+                                            metric="precomputed", random_state=42)
         except Exception as Argument:
             logging.error("Computing silhouette score failed with following message:")
             logging.error(str(Argument))
@@ -223,6 +227,7 @@ class TS_KMeans(GenericCluster):
         self.name = "TS_KMeans"
         self.model = ts.TimeSeriesKMeans(n_clusters=n_clusters, metric=metric)
         self.n_clusters = n_clusters
+        self.metric = metric
 
     def preprocess(self, X: Examples):
         X_train, X_test, y_train, y_test = X.to_ts_snippet()

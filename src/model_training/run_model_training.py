@@ -15,7 +15,7 @@ def run_model_training_main(train_config, data_config, filename):
         examples.add_padding()
 
         if train_config["metric"] == "euclidean":
-            models = [cl.KMedoids, cl.KMeans]
+            models = [cl.KMedoids, cl.KMeans, cl.TS_KMeans]
             metric = "euclidean"
         elif train_config["metric"] == "dtw":
             models = [cl.KMedoids, cl.KMeans,
