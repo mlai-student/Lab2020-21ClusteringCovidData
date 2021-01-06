@@ -18,8 +18,7 @@ def run_model_training_main(train_config, data_config, filename):
             models = [cl.KMedoids, cl.KMeans, cl.TS_KMeans]
             metric = "euclidean"
         elif train_config["metric"] == "dtw":
-            models = [cl.KMedoids, cl.KMeans,
-                      cl.TS_KShape, cl.TS_KMeans] #cl.TS_KernelKMeans
+            models = [cl.TS_KShape]#, cl.TS_KMeans] #cl.TS_KernelKMeans, cl.KMedoids, cl.KMeans,
             metric = "dtw"
         else:
             raise TypeError("Unknown metric")
@@ -59,6 +58,3 @@ def run_model_training_main(train_config, data_config, filename):
         logging.error("Could not open file(s)")
 
     logging.debug("model_training.Run_model_training ended main")
-
-# if train_config.getboolean("save_variance"):
-#     keys.append("variance")

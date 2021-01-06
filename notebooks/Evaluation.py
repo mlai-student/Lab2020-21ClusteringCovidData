@@ -33,12 +33,12 @@ from src.data_representation.Examples import load_Examples_from_file
 import os
 import pandas as pd
 PROJECT_PATH = os.getcwd().replace("notebooks", "")
-DATA_GEN_FOLDER_NAME = "Jan-04-2021"
+DATA_GEN_FOLDER_NAME = "Jan-06-2021"
 DATASET_PATH = PROJECT_PATH + "data/" + DATA_GEN_FOLDER_NAME + "/"
 OVERVIEW_DATASET_PATH = DATASET_PATH + "models.csv"
 model_df = pd.read_csv(OVERVIEW_DATASET_PATH)
 
-model_df.shape
+model_df.head()
 
 # %%
 import copy
@@ -47,6 +47,7 @@ from collections import OrderedDict
 
 score_overview = copy.deepcopy(model_df)
 sil, cal, dav = [], [], []
+sil_pop, cal_pop, dav_pop = [], [], []
 for ind in score_overview.index:
     filename = score_overview['filename'][ind]
     with open(DATASET_PATH + "model/" + filename, 'rb') as f:
@@ -54,9 +55,12 @@ for ind in score_overview.index:
         sil.append(model.silhouette())
         cal.append(model.calinski())
         dav.append(model.davies())
+        sil_pop.append(model.silhouette(metric =score_overview['metric'][ind], use_add_info=True, key="Population"))
+        cal_pop.append(model.calinski(use_add_info=True, key="Population"))
+        dav_pop.append(model.davies(use_add_info=True, key="Population"))
         
-keys = ["silhouette_score", "Calinski_harabasz_index", "davies_bouldin_index"]  
-values = [sil, cal, dav]
+keys = ["silhouette", "Calinski", "davies", "silhouette_pop", "Calinski_pop", "davies_pop"]  
+values = [sil, cal, dav, sil_pop, cal_pop, dav_pop]
 score_df = pd.DataFrame(OrderedDict(zip(keys, values)))
 score_overview = pd.concat([score_overview, score_df], axis=1)
 
@@ -73,7 +77,7 @@ score_overview
 #or special case clustering method
 cols = score_overview.columns
 attr_of_interest = "model_name"
-evaluation_cols = cols[8:len(cols)]
+evaluation_cols = cols[9:len(cols)]
 bar_values = pd.DataFrame([], index=evaluation_cols)
 
 for table in score_overview.groupby(attr_of_interest):
@@ -90,7 +94,7 @@ for index, row in bar_values.iterrows():
 # %%
 first_attr_of_interest = "model_name"
 sec_attr_of_interest = "nr_days_for_avg"
-evaluation_cols = cols[8:len(cols)]
+evaluation_cols = cols[9:len(cols)]
 first_attr_evals = []
 for first_attr_table in score_overview.groupby(first_attr_of_interest):
     first_attr_eval = pd.DataFrame([], index=evaluation_cols)
