@@ -42,6 +42,7 @@ class Examples:
         self.train_data.extend(other.train_data)
         self.test_data.extend(other.test_data)
         self.n_examples += other.n_examples
+        return other.n_examples
 
     def to_ts_snippet(self):
         X_train = to_time_series_dataset([x.to_vector() for x in self.train_data])
@@ -87,9 +88,16 @@ class Examples:
         cluster = [Examples() for _ in range(n_cluster)]
         for idx, l in enumerate(labels):
             data = self.train_data[idx]
-            cluster[l].train_data.append(data)
+            cluster[l].append_snippet(data)
+        new_labels = []
+        for i, c in enumerate(cluster):
+            new_labels.extend([i for _ in range(c.n_examples)])
         n_per_clusters = [len(c.train_data) + len(c.test_data) for c in cluster]
-        return cluster, n_per_clusters
+        return cluster, n_per_clusters, new_labels
+
+    def append_snippet(self, other_snippet):
+        self.train_data.append(other_snippet)
+        self.n_examples += 1
 
     def add_padding(self):
         ts_size = [ts.time_series.shape[0] for ts in self.train_data]

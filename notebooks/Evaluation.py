@@ -33,12 +33,12 @@ from src.data_representation.Examples import load_Examples_from_file
 import os
 import pandas as pd
 PROJECT_PATH = os.getcwd().replace("notebooks", "")
-DATA_GEN_FOLDER_NAME = "Jan-06-2021"
+DATA_GEN_FOLDER_NAME = "Jan-08-2021"
 DATASET_PATH = PROJECT_PATH + "data/" + DATA_GEN_FOLDER_NAME + "/"
 OVERVIEW_DATASET_PATH = DATASET_PATH + "models.csv"
 model_df = pd.read_csv(OVERVIEW_DATASET_PATH)
 
-model_df.head()
+model_df
 
 # %%
 import copy
@@ -52,10 +52,10 @@ for ind in score_overview.index:
     filename = score_overview['filename'][ind]
     with open(DATASET_PATH + "model/" + filename, 'rb') as f:
         model = pickle.load(f)
-        sil.append(model.silhouette())
+        sil.append(model.silhouette(metric="euclidean")) #metric =score_overview['metric'][ind]
         cal.append(model.calinski())
         dav.append(model.davies())
-        sil_pop.append(model.silhouette(metric =score_overview['metric'][ind], use_add_info=True, key="Population"))
+        sil_pop.append(model.silhouette(use_add_info=True, key="Population"))
         cal_pop.append(model.calinski(use_add_info=True, key="Population"))
         dav_pop.append(model.davies(use_add_info=True, key="Population"))
         
@@ -122,7 +122,7 @@ for table in bar_values:
 # %%
 first_attr_of_interest = "model_name"
 sec_attr_of_interest = "no_cluster"
-evaluation_cols = cols[8:len(cols)]
+evaluation_cols = cols[9:len(cols)]
 first_attr_evals = []
 for first_attr_table in score_overview.groupby(first_attr_of_interest):
     first_attr_eval = pd.DataFrame([], index=evaluation_cols)

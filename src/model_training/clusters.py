@@ -21,8 +21,7 @@ from src.data_representation.Examples import Examples
 class GenericCluster:
     def fit(self, X: Examples):
         self.model.fit(self.preprocess(X))
-        self.labels = self.model.labels_
-        self.clusters, self.n_per_clusters = X.divide_by_label(self.n_clusters, labels=self.labels)
+        self.clusters, self.n_per_clusters, self.labels = X.divide_by_label(self.n_clusters, labels=self.model.labels_)
         return self
 
     def plot_cluster(self):
