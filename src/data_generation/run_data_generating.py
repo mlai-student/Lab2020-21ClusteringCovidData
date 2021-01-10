@@ -53,7 +53,7 @@ def make_total_ts(ecdc_df, data_gen_config):
         country_group = ecdc_df[['dateRep', 'countriesAndTerritories','countryterritoryCode',  'continentExp', 'cases']] \
             .groupby(['countriesAndTerritories'], as_index=False)
         for country in country_group:
-            ts = np.array(country[1]['cases'].array)
+            ts = np.flipud(np.array(country[1]['cases'].array))
             if data_gen_config.getboolean("replace_negative_values_w_zero"):
                 ts[ts <0] =0
             country_code = country[1]['countryterritoryCode'].array[0]
@@ -70,7 +70,7 @@ def make_total_ts(ecdc_df, data_gen_config):
             additional_info = get_additional_info(country[0], data_gen_config)
 
             examples.append(Snippet(ts, None, country_id=country_code, country=country_name,
-                                    continent=continent, ascending=True, additional_info = additional_info))
+                                    continent=continent, ascending=False, additional_info = additional_info))
     except Exception as Argument:
         logging.error("Storing time series failed with following message:")
         logging.error(str(Argument))
