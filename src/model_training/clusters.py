@@ -1,20 +1,18 @@
 import matplotlib.pyplot as plt
 from matplotlib.pyplot import cm
+
 import numpy as np
 import logging
 from datetime import date
+import os
 from pathlib import Path
 import pickle
-import os
 import plotly.express as px
 import pandas as pd
-
 import tslearn.clustering as ts
-
 import sklearn.cluster as sk
 import sklearn_extra.cluster as sk_extra
 from sklearn.metrics import silhouette_score, calinski_harabasz_score, davies_bouldin_score
-
 from src.data_representation.Examples import Examples
 
 
@@ -40,9 +38,9 @@ class GenericCluster:
         dfs = [c.make_dataframe() for c in self.clusters]
         df = pd.concat(dfs, ignore_index=True)
         df_acc = df.groupby(['countryterritoryCode'], as_index=False).sum()
+        labels = [str(l) for l in self.labels]
         fig = px.choropleth(df_acc, locations="countryterritoryCode",
-                            color=self.labels,
-                            color_discrete_sequence=px.colors.qualitative.G10)
+                            color=labels)
         fig.update_layout(
             title=f"Clustermethod: {self.name}, Number Clusters: {self.n_clusters}")
         return fig
@@ -156,7 +154,7 @@ class KMeans(GenericCluster):
         self.name = "KMeans"
         self.model = sk.KMeans(n_clusters=n_clusters, random_state=42)
         self.n_clusters = n_clusters
-        self.metric = "None"
+        self.metric = "euclidean"
 
     def preprocess(self, X: Examples):
         X_train, X_test, y_train, y_test = X.split_examples()

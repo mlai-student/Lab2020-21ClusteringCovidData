@@ -4,3 +4,4 @@ notebooks/.ipynb_checkpoints/
 data
 *.idea
 *.ipynb
+*.png

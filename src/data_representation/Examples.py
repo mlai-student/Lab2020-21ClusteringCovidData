@@ -99,7 +99,7 @@ class Examples:
         self.train_data.append(other_snippet)
         self.n_examples += 1
 
-    def add_padding(self):
+    def add_padding(self, cut_length=0):
         ts_size = [ts.time_series.shape[0] for ts in self.train_data]
         ts_size.extend([ts.time_series.shape[0] for ts in self.test_data])
         max_ts_size = max(ts_size)

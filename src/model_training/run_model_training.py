@@ -15,10 +15,10 @@ def run_model_training_main(train_config, data_config, filename):
         examples.add_padding()
 
         if train_config["metric"] == "euclidean":
-            models = [cl.KMedoids, cl.KMeans, cl.TS_KMeans]
+            models = [cl.KMeans]
             metric = "euclidean"
         elif train_config["metric"] == "dtw":
-            models = [cl.TS_KShape]#, cl.TS_KMeans] #cl.TS_KernelKMeans, cl.KMedoids, cl.KMeans,
+            models = [cl.TS_KMeans] #cl.TS_KernelKMeans, cl.KMedoids
             metric = "dtw"
         else:
             raise TypeError("Unknown metric")
