@@ -2,9 +2,9 @@ import numpy as np
 
 class Snippet:
     def __init__(self, ts: np.array, label, country_id = None, country=None,
-                continent=None, ascending=False, additional_info={}):
+                continent=None, flip_order=False, additional_info={}):
         self.time_series = ts
-        if ascending:
+        if flip_order:
             self.time_series = np.flipud(self.time_series)
         self.label = label
         self.country_id = country_id

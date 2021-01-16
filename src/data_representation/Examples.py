@@ -84,7 +84,7 @@ class Examples:
         df = pd.DataFrame(cases_dict, columns=['cases', 'countriesAndTerritories', 'countryterritoryCode', 'continentExp'])
         return df
 
-    def divide_by_label(self, n_cluster, labels) -> (list, int):
+    def divide_by_label(self, n_cluster, labels):# -> (list, int):
         cluster = [Examples() for _ in range(n_cluster)]
         for idx, l in enumerate(labels):
             data = self.train_data[idx]
