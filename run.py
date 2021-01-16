@@ -8,6 +8,7 @@ import itertools
 from datetime import date
 from pathlib import Path
 import numpy as np
+from tqdm import tqdm
 from src.data_generation.run_data_generating import run_data_generating_main
 from src.model_training.run_model_training import run_model_training_main
 from src.model_prediction.run_model_prediction import run_model_prediction_main
@@ -87,8 +88,10 @@ def main(path_to_cfg):
     if main_config["main_flow_settings"].getboolean("Use_newest_data"):
         main_config["model_training_settings"]["data_path"] = foldername
 
-    for i, comb in enumerate(comb_lists):
-        print("Run project with settings: " + str(comb))
+    print("Run through all combinations")
+    print(f"Nr combinations: {len(comb_lists)}")
+    for i, comb in tqdm(enumerate(comb_lists)):
+        #print("Run project with settings: " + str(comb))
         logging.info("Run project with settings: " + str(comb))
         main_config["data_generating_settings"]["divide_by_country_population"] = str(comb[0])
         main_config["data_generating_settings"]["do_smoothing"] = str(comb[1])
@@ -101,7 +104,7 @@ def main(path_to_cfg):
         run_project_w_unique_config(main_config, filename)
         new_row = pd.Series(list(comb)[:-1] + [filename], index=overview_file.columns)
         overview_file = overview_file.append(new_row, ignore_index=True)
-        print("Done")
+    print("Done")
 
     overview_file.to_csv(foldername + "overview.csv")
     logging.shutdown()
