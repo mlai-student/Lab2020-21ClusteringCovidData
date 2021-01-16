@@ -4,6 +4,7 @@ import logging
 import random
 from datetime import date
 from pathlib import Path
+from tqdm import tqdm
 from src.data_representation.Snippet import Snippet
 from src.data_representation.Examples import Examples
 from src.data_generation.smoothing import smooth_timeline
@@ -33,7 +34,7 @@ def run_data_generating_main(data_gen_config, filename):
         snippets = divide_ecdc_data_into_snippets(df, data_gen_config)
         if data_gen_config.getboolean("do_data_augmentation"):
             data_augmentation(snippets, data_gen_config)
-        snippet_examples.fill_from_snippets(snippets)
+        snippet_examples.fill_from_snippets(snippets, test_share=0., data_gen_config=data_gen_config)
 
     snippet_examples.save_to_file(filename)
     logging.debug("data_generating.Run_data_generating finished main")
@@ -50,8 +51,7 @@ def save_data_frame(df):
 def make_total_ts(ecdc_df, data_gen_config):
     examples = []
     try:
-        country_group = ecdc_df[['dateRep', 'countriesAndTerritories','countryterritoryCode',  'continentExp', 'cases']] \
-            .groupby(['countriesAndTerritories'], as_index=False)
+        country_group = ecdc_df.groupby(['countriesAndTerritories'], as_index=False)
         for country in country_group:
             ts = np.flipud(np.array(country[1]['cases'].array))
             if data_gen_config.getboolean("replace_negative_values_w_zero"):
@@ -67,10 +67,10 @@ def make_total_ts(ecdc_df, data_gen_config):
                 else:
                     ts = output
 
-            additional_info = get_additional_info(country[0], data_gen_config)
+            additional_info = get_additional_info(country[0], data_gen_config, country[1])
 
             examples.append(Snippet(ts, None, country_id=country_code, country=country_name,
-                                    continent=continent, ascending=False, additional_info = additional_info))
+                                    continent=continent, flip_order=False, additional_info = additional_info))
     except Exception as Argument:
         logging.error("Storing time series failed with following message:")
         logging.error(str(Argument))
@@ -78,7 +78,6 @@ def make_total_ts(ecdc_df, data_gen_config):
 
 
 def divide_ecdc_data_into_snippets(ecdc_df, data_gen_config):
-    print("Dividing ecdc data into snippets")
     snippets = []
     search_val = data_gen_config["examples_search_val"]
     group_by = data_gen_config["examples_group_by"]
@@ -90,20 +89,20 @@ def divide_ecdc_data_into_snippets(ecdc_df, data_gen_config):
         logging.error(str(Argument))
     try:
         # extract Examples from data
-        groups = ecdc_df[['dateRep', group_by, search_val]].groupby(group_by)
+        groups = ecdc_df.sort_values(by='dateRep', ascending=True).groupby(group_by)
         for group in groups:
             group_sort = group[1].sort_values(by='dateRep', ascending=True)
             max_idx = group_sort.shape[0] - snippet_length - label_length - 1
             indices = make_interval_indices(snippet_length, int(data_gen_config['examples_no_snippets']), max_idx)
+            country_code = group[1]['countryterritoryCode'].array[0]
+            country_name = group[1]['countriesAndTerritories'].array[0]
+            continent = group[1]['continentExp'].array[0]
             for start, end in indices:
                 X = group_sort.iloc[start: end]
                 Y = group_sort.iloc[end + 1: end + 1 + label_length]
-                X_a = np.array(X[search_val])
-                Y_a = np.array(Y[search_val])
+                X_a, Y_a = np.array(X[search_val]), np.array(Y[search_val])
                 if data_gen_config.getboolean("replace_negative_values_w_zero"):
-                    X_a[X_a<0] = 0
-                    Y_a[Y_a<0] = 0
-
+                    X_a[X_a<0],Y_a[Y_a<0] = 0, 0
                 #if smoothing is wanted every value gets replaced by the nr_days_for_avg mean
                 if data_gen_config.getboolean("do_smoothing"):
                     output = smooth_timeline(X_a, Y_a, group_sort[search_val], start, end, data_gen_config)
@@ -111,8 +110,9 @@ def divide_ecdc_data_into_snippets(ecdc_df, data_gen_config):
                         continue
                     else:
                         X_a, Y_a = output
-                snippets.append(Snippet(X_a, Y_a))
-
+                additional_info = get_additional_info(group[0], data_gen_config, group[1])
+                snippets.append(Snippet(X_a, Y_a, country_id=country_code, country=country_name,
+                                        continent=continent, flip_order=False, additional_info = additional_info))
     except Exception as Argument:
         logging.error("converting dataset into snippets failed with message:")
         logging.error(str(Argument))
