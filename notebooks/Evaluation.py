@@ -27,22 +27,19 @@ import numpy as np
 import matplotlib.pyplot as plt
 import seaborn as sns
 from src.data_representation.Examples import load_Examples_from_file
+import pickle
 # %matplotlib inline
 
 # %%
 import os
 import pandas as pd
 PROJECT_PATH = os.getcwd().replace("notebooks", "")
-DATA_GEN_FOLDER_NAME = "Jan-09-2021_vorsicht"
+DATA_GEN_FOLDER_NAME = "Jan-17-2021"
 DATASET_PATH = PROJECT_PATH + "data/" + DATA_GEN_FOLDER_NAME + "/"
 OVERVIEW_DATASET_PATH = DATASET_PATH + "models.csv"
 model_df = pd.read_csv(OVERVIEW_DATASET_PATH)
 
 model_df.head()
-
-# %%
-OVERVIEW_DATASET_PATH = DATASET_PATH + "Scoring.csv"
-score_overview = pd.read_csv(OVERVIEW_DATASET_PATH)
 
 # %%
 import copy
@@ -60,38 +57,37 @@ for ind in tqdm(score_overview.index):
     filename = score_overview['filename'][ind]
     with open(DATASET_PATH + "model/" + filename, 'rb') as f:
         model = pickle.load(f)
-        sil.append(model.silhouette(metric="euclidean"))#metric =score_overview['metric'][ind]
+        sil.append(model.silhouette(metric =score_overview['metric'][ind]))
         cal.append(model.calinski())
         dav.append(model.davies())
         var, _, _ = model.statistics()
         var_l.append(var)
         max_cluster.append(max(model.n_per_clusters))
-        sil_pop.append(model.silhouette(use_add_info=True, key="Population"))
-        cal_pop.append(model.calinski(use_add_info=True, key="Population"))
-        dav_pop.append(model.davies(use_add_info=True, key="Population"))
+#         sil_pop.append(model.silhouette(use_add_info=True, key="Population"))
+#         cal_pop.append(model.calinski(use_add_info=True, key="Population"))
+#         dav_pop.append(model.davies(use_add_info=True, key="Population"))
         
-keys = ["silhouette", "Calinski", "davies", "var", "silhouette_pop", "Calinski_pop", "davies_pop", "max_cluster"]  
-values = [sil, cal, dav, var_l, sil_pop, cal_pop, dav_pop, max_cluster]
-# keys = ["var"]
-# values = [var_l]
+# keys = ["silhouette", "Calinski", "davies", "var", "silhouette_pop", "Calinski_pop", "davies_pop", "max_cluster"]  
+# values = [sil, cal, dav, var_l, sil_pop, cal_pop, dav_pop, max_cluster]
+
+keys = ["silhouette", "Calinski", "davies", "var", "max_cluster"]  
+values = [sil, cal, dav, var_l, max_cluster]
+
 score_df = pd.DataFrame(OrderedDict(zip(keys, values)))
 score_overview = pd.concat([score_overview, score_df], axis=1)
 
 score_overview.head()
 
 # %%
-i = score_overview["max_cluster"].idxmin()
-score_overview.iloc[i]
-
-# %%
-cond_df = score_overview[(score_overview["metric"]=="dtw") & (score_overview.no_cluster==5) & (score_overview.do_smoothing=="no")]
-#
+cond_df = score_overview[(score_overview.do_smoothing=="yes")]
+# (score_overview["metric"]=="dtw") & (score_overview.no_cluster==5) & 
 best_row = cond_df['silhouette'].idxmax()
+
 filename = score_overview['filename'][best_row]
 with open(DATASET_PATH + "model/" + filename, 'rb') as f:
         model = pickle.load(f)
-# print(score_overview.iloc[best_row])
-model.plot_cluster()
+print(score_overview.iloc[best_row])
+model.plot_cluster().show()
 
 # %%
 model.plot_geo_cluster()

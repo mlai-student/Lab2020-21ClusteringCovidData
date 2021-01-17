@@ -1,6 +1,8 @@
 import pickle
 import random
 import logging
+
+from sklearn.decomposition import PCA
 from tslearn.utils import to_time_series_dataset
 import pandas as pd
 import numpy as np
@@ -84,11 +86,12 @@ class Examples:
         df = pd.DataFrame(cases_dict, columns=['cases', 'countriesAndTerritories', 'countryterritoryCode', 'continentExp'])
         return df
 
-    def divide_by_label(self, n_cluster, labels) -> (list, int):
+    def divide_by_label(self, n_cluster, labels):
         cluster = [Examples() for _ in range(n_cluster)]
         for idx, l in enumerate(labels):
-            data = self.train_data[idx]
-            cluster[l].append_snippet(data)
+            if l != -1:
+                data = self.train_data[idx]
+                cluster[l].append_snippet(data)
         new_labels = []
         for i, c in enumerate(cluster):
             new_labels.extend([i for _ in range(c.n_examples)])
@@ -130,6 +133,14 @@ class Examples:
         else:
             return None
         return pairwise_distances(X=distance_matrix, metric='precomputed')
+
+    def pca_reduction(self, n_components):
+        pca = PCA(n_components=n_components)
+        X = [x.to_vector() for x in self.train_data]
+        pca.fit(X)
+        X_pca = pca.transform(X)
+        return X_pca
+
 
     def save_to_file(self, filename):
         try:

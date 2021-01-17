@@ -12,12 +12,16 @@ import pandas as pd
 import tslearn.clustering as ts
 import sklearn.cluster as sk
 import sklearn_extra.cluster as sk_extra
-from sklearn.metrics import silhouette_score, calinski_harabasz_score, davies_bouldin_score
+from sklearn.metrics import calinski_harabasz_score, davies_bouldin_score
+from tslearn.preprocessing import TimeSeriesScalerMeanVariance
+
 from src.data_representation.Examples import Examples
+from tslearn.utils import to_time_series_dataset
 
 
 class GenericCluster:
     def fit(self, X: Examples):
+        # test = to_time_series_dataset([[1, 2, 3], [1, 2, 3], [7, 8, 9]])
         self.model.fit(self.preprocess(X))
         self.clusters, self.n_per_clusters, self.labels = X.divide_by_label(self.n_clusters, labels=self.model.labels_)
         return self
@@ -25,7 +29,6 @@ class GenericCluster:
     def plot_cluster(self):
         fig, axs = plt.subplots(self.n_clusters, figsize=(12, self.n_clusters * 3))
         fig.suptitle('Clusters')
-
         for i, cl in enumerate(self.clusters):
             color = iter(cm.rainbow(np.linspace(0, 1, len(cl.train_data))))
             for ts in cl.train_data:
@@ -69,6 +72,10 @@ class GenericCluster:
         return X
 
     def silhouette(self, metric=None, use_add_info=False, key="Population"):
+        if metric == "dtw":
+            from tslearn.clustering import silhouette_score
+        else:
+            from sklearn.metrics import silhouette_score
         try:
             X = self.get_examples_from_cluster()
             if use_add_info:
@@ -77,8 +84,9 @@ class GenericCluster:
                                         metric="l1", random_state=42)
             else:
                 if metric == "dtw":
-                    return silhouette_score(X.to_distance_matrix(metric="dtw"), labels=self.labels,
-                                            metric="precomputed", random_state=42)
+                    X_train, X_test, y_train, y_test = X.to_ts_snippet()
+                    return silhouette_score(X_train, labels=self.labels,
+                                            metric="dtw", random_state=42)
                 else:
                     X_train, _, _, _ = X.split_examples()
                     return silhouette_score(X_train, labels=self.labels,
@@ -168,7 +176,7 @@ class DBSCAN(GenericCluster):
     def __init__(self, eps, metric):
         self.name = "DBSCAN"
         if metric == "euclidean":
-            self.model = sk.DBSCAN(eps=eps, metric='euclidean')
+            self.model = sk.DBSCAN(eps=eps, metric='euclidean', min_samples=4)
         else:
             self.model = sk.DBSCAN(eps=eps, metric='precomputed')
         self.metric = metric
@@ -220,6 +228,7 @@ class TS_KShape(GenericCluster):
             return X_train
 
 
+# Carefull, implements a
 class TS_KMeans(GenericCluster):
     def __init__(self, n_clusters, metric):
         self.name = "TS_KMeans"
@@ -228,8 +237,7 @@ class TS_KMeans(GenericCluster):
         self.metric = metric
 
     def preprocess(self, X: Examples):
-        X_train, X_test, y_train, y_test = X.to_ts_snippet()
-        if X_test:
-            return np.concatenate((X_train, X_test))
-        else:
-            return X_train
+        print("Attention: At the Moment, time series scaler is implemented, with mean=0 and std=5")
+        X = [x.to_vector() for x in X.train_data]
+        X = TimeSeriesScalerMeanVariance(mu=0., std=5.).fit_transform(X)
+        return X
