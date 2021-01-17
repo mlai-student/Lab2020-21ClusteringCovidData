@@ -166,7 +166,7 @@ class KMeans(GenericCluster):
 
     def preprocess(self, X: Examples):
         X_train, X_test, y_train, y_test = X.split_examples()
-        if X_test:
+        if not (X_test is None):
             return np.concatenate((X_train, X_test))
         else:
             return X_train

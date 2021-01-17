@@ -31,7 +31,6 @@ def run_model_training_main(train_config, data_config, filename):
                 "do_data_augmentation", "percent_varianz", "filename", "model_name", "no_cluster", "metric"]
         values = [divide_by_country_population, do_smoothing, nr_days_for_avg,
                   do_data_augmentation, percent_varianz, m_filename, model_name, no_cluster, metrics]
-
         for n in n_clusters:
             for m in models:
                 model = m(n, metric=metric).fit(examples)
@@ -44,7 +43,6 @@ def run_model_training_main(train_config, data_config, filename):
                 metrics.append(model.metric)
                 m_filename.append(model_filename)
         model_dict = OrderedDict(zip(keys, values))
-
         if os.path.isfile(train_config["data_path"] + "models.csv"):
             model_df = pd.read_csv(train_config["data_path"] + "models.csv")
             pd_model_dict = pd.DataFrame.from_dict(model_dict)
@@ -56,5 +54,4 @@ def run_model_training_main(train_config, data_config, filename):
     except Exception as Argument:
         print(Argument)
         logging.error("Could not open file(s)")
-
     logging.debug("model_training.Run_model_training ended main")
