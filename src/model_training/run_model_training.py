@@ -12,7 +12,6 @@ def run_model_training_main(train_config, data_config, filename):
     logging.debug("model_training.Run_model_training started main")
     try:
         examples = load_Examples_from_file(filename)
-        examples.add_padding()
 
         if train_config["metric"] == "euclidean":
             models = [cl.KMeans]
