@@ -7,6 +7,6 @@ def naive_forecast(time_series):
 
 # Ŷ(t+h|t) = Y(t+h-T)
 # T:= Period of seasonality
-def seasonal_naive_forecast(time_series, T):
-    assert len(time_series) > T
+def seasonal_naive_forecast(time_series, T=7):
+    assert len(time_series) >= T, "Timeseries too short for seasonal naive_forecast"
     return time_series[-T]

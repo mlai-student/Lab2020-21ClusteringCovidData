@@ -23,4 +23,4 @@ def smooth_timeline(X, Y, group_sort, start, end, data_gen_config, use_zero_fill
     if no_Y:
         return np.array(X_out)
     Y_out = float(smooth_data[end-nr_days_for_avg: end+1].dot(conv_matrix))
-    return np.array(X_out), Y_out
+    return np.array(X_out), np.array(Y_out)
