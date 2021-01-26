@@ -17,14 +17,22 @@ from tslearn.preprocessing import TimeSeriesScalerMeanVariance
 
 from src.data_representation.Examples import Examples
 from tslearn.utils import to_time_series_dataset
+from sklearn.exceptions import NotFittedError
 
 
 class GenericCluster:
     def fit(self, X: Examples):
-        # test = to_time_series_dataset([[1, 2, 3], [1, 2, 3], [7, 8, 9]])
         self.model.fit(self.preprocess(X))
         self.clusters, self.n_per_clusters, self.labels = X.divide_by_label(self.n_clusters, labels=self.model.labels_)
+        print("dividing by cluster finished")
         return self
+
+    def predict(self, X_test: Examples):
+        try:
+            pred = self.model.predict(self.preprocess(X_test))
+            return pred
+        except NotFittedError as e:
+            print(repr(e))
 
     def plot_cluster(self):
         fig, axs = plt.subplots(self.n_clusters, figsize=(12, self.n_clusters * 3))
@@ -237,7 +245,8 @@ class TS_KMeans(GenericCluster):
         self.metric = metric
 
     def preprocess(self, X: Examples):
-        print("Attention: At the Moment, time series scaler is implemented, with mean=0 and std=5")
-        X = [x.to_vector() for x in X.train_data]
-        X = TimeSeriesScalerMeanVariance(mu=0., std=5.).fit_transform(X)
+        # print("Attention: At the Moment, time series scaler is implemented, with mean=0 and std=5")
+        # X = [x.to_vector() for x in X.train_data]
+        # X = TimeSeriesScalerMeanVariance(mu=0., std=5.).fit_transform(X)
+        X, _, _, _ = X.to_ts_snippet()
         return X
