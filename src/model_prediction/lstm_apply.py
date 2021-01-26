@@ -51,7 +51,6 @@ def apply_lstm(examples: Examples):
             print(f"Training loss: {loss.item()} in epoch {epoch}")
             print(classification_report(y_batch.cpu().numpy(), pred.cpu().numpy(), digits=4))
 
-
     print("Start evaluating model")
     with torch.no_grad():
         preds = []

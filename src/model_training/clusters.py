@@ -24,7 +24,6 @@ class GenericCluster:
     def fit(self, X: Examples):
         self.model.fit(self.preprocess(X))
         self.clusters, self.n_per_clusters, self.labels = X.divide_by_label(self.n_clusters, labels=self.model.labels_)
-        print("dividing by cluster finished")
         return self
 
     def predict(self, X_test: Examples):

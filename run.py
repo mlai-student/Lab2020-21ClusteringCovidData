@@ -2,6 +2,8 @@ import argparse
 import configparser
 import logging
 import os
+from types import SimpleNamespace
+
 import pandas as pd
 import json
 import itertools
@@ -17,19 +19,19 @@ def run_with_std_config():
     print("Run started with standard config")
     main("config.ini")
 
-def run_project_w_unique_config(config, filename, foldername):
+def run_project_w_unique_config(config, filename_example, filename_model, foldername):
     # run the three main parts of the program flow data generation, model_training and prediciton
     config["main_flow_settings"]["generated_folder_path"] = foldername
     try:
         if config["main_flow_settings"].getboolean("Run_data_generation"):
-            run_data_generating_main(config["data_generating_settings"], filename)
-        config["main_flow_settings"]["generated_data_path"] = filename
+            run_data_generating_main(config["data_generating_settings"], filename_example)
+        config["main_flow_settings"]["generated_data_path"] = filename_example
     except Exception as Argument:
         logging.error("Data generation process failed with the following error message:")
         logging.error(str(Argument))
     try:
         if config["main_flow_settings"].getboolean("Run_model_training"):
-            run_model_training_main(config["model_training_settings"], config["data_generating_settings"], filename)
+            run_model_training_main(config["model_training_settings"], filename_example, filename_model)
     except Exception as Argument:
         logging.error("Model training process failed with the following error message:")
         logging.error(str(Argument))
@@ -56,7 +58,8 @@ def main(path_to_cfg):
     Path("data/" + today).mkdir(parents=True, exist_ok=True)
     foldername = "data/{}/".format(today)
     overview_file = pd.DataFrame([], columns=["divide_by_country_population", "do_smoothing", "nr_days_for_avg",
-                                              "do_data_augmentation", "percent_varianz", "filename"])
+                                              "do_data_augmentation", "percent_varianz", "metric", "models",
+                                              "n_clusters", "filename_example", "filename_model"])
     # go through all required cominations defined in config.ini
     # possible variables for combinations:
     lst_divide_by_country_population = json.loads(
@@ -67,14 +70,20 @@ def main(path_to_cfg):
     lst_do_data_augmentation = json.loads(main_config["data_generating_settings"]["do_data_augmentation"])
     lst_percent_varianz = json.loads(main_config["data_generating_settings"]["percent_varianz"])
     metric = json.loads(main_config["model_training_settings"]["metric"])
+    models = json.loads(main_config["model_training_settings"]["models"])
+    n_clusters = json.loads(main_config["model_training_settings"]["n_clusters"])
     # copy main config and go through all possible compinations of them above:
     # remove not possible combinations like do_smoothing with a smoothin param
-    # run project with adjustet config and save output with given filename
+    # run project with adjustet config and save output with given filename_example
 
     config_comb = list(itertools.product(lst_divide_by_country_population,
                                          lst_do_smoothing, lst_nr_days_for_avg,
-                                         lst_do_data_augmentation, lst_percent_varianz, metric))
-    # attention not create not nessasary rows
+                                         lst_do_data_augmentation, lst_percent_varianz))
+
+    models_comb = list(itertools.product(metric, models, n_clusters))
+    valid_model_combs = {"euclidean": ["KMedoids", "KMeans", "DBSCAN"],
+                         "dtw": ["TS_KMeans", "TS_KShape"]}
+    # attention: not create not necessary rows
     comb_lists = []
     for i, comb in enumerate(config_comb):
         comb_list = list(comb)
@@ -98,12 +107,18 @@ def main(path_to_cfg):
         main_config["data_generating_settings"]["nr_days_for_avg"] = str(comb[2])
         main_config["data_generating_settings"]["do_data_augmentation"] = str(comb[3])
         main_config["data_generating_settings"]["percent_varianz"] = str(comb[4])
-        main_config["model_training_settings"]["metric"] = str(comb[5])
 
-        filename = foldername + str(i)
-        run_project_w_unique_config(main_config, filename, foldername)
-        new_row = pd.Series(list(comb)[:-1] + [filename], index=overview_file.columns)
-        overview_file = overview_file.append(new_row, ignore_index=True)
+        for m_comb in models_comb:
+            if str(m_comb[1]) in valid_model_combs[str(m_comb[0])]:
+                main_config["model_training_settings"]["metric"] = str(m_comb[0])
+                main_config["model_training_settings"]["models"] = str(m_comb[1])
+                main_config["model_training_settings"]["n_clusters"] = str(m_comb[2])
+
+                filename_example = foldername + str(i)
+                filename_model = f"{str(m_comb[1])}_{hash(filename_example)}"
+                run_project_w_unique_config(main_config, filename_example, filename_model, foldername)
+                new_row = pd.Series(list(comb) + list(m_comb) + [filename_example, filename_model], index=overview_file.columns)
+                overview_file = overview_file.append(new_row, ignore_index=True)
     print("Done")
 
     overview_file.to_csv(foldername + "overview.csv")

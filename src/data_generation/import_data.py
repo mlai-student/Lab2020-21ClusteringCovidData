@@ -1,3 +1,5 @@
+import logging
+
 import pandas as pd
 
 def get_ecdc_dataset(data_gen_config):
