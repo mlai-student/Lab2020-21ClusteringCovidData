@@ -11,13 +11,7 @@ from collections import OrderedDict
 def run_model_training_main(train_config, data_config, filename):
     logging.debug("model_training.Run_model_training started main")
     try:
-        example = load_Examples_from_file(filename)
-        example.add_padding()
-        for snippet in example.train_data:
-            snippet.standardize()
-
-        print("after standardizing")
-
+        examples = load_Examples_from_file(filename)
 
         if train_config["metric"] == "euclidean":
             models = [cl.KMeans]

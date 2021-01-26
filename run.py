@@ -13,17 +13,17 @@ from src.data_generation.run_data_generating import run_data_generating_main
 from src.model_training.run_model_training import run_model_training_main
 from src.model_prediction.run_model_prediction import run_model_prediction_main
 
-
 def run_with_std_config():
     print("Run started with standard config")
     main("config.ini")
 
-
-def run_project_w_unique_config(config, filename):
+def run_project_w_unique_config(config, filename, foldername):
     # run the three main parts of the program flow data generation, model_training and prediciton
+    config["main_flow_settings"]["generated_folder_path"] = foldername
     try:
         if config["main_flow_settings"].getboolean("Run_data_generation"):
             run_data_generating_main(config["data_generating_settings"], filename)
+        config["main_flow_settings"]["generated_data_path"] = filename
     except Exception as Argument:
         logging.error("Data generation process failed with the following error message:")
         logging.error(str(Argument))
@@ -35,7 +35,7 @@ def run_project_w_unique_config(config, filename):
         logging.error(str(Argument))
     try:
         if config["main_flow_settings"].getboolean("Run_model_prediction"):
-            run_model_prediction_main(config["model_prediction_settings"])
+            run_model_prediction_main(config)
     except Exception as Argument:
         logging.error("Model prediction process failed with the following error message:")
         logging.error(str(Argument))
@@ -101,7 +101,7 @@ def main(path_to_cfg):
         main_config["model_training_settings"]["metric"] = str(comb[5])
 
         filename = foldername + str(i)
-        run_project_w_unique_config(main_config, filename)
+        run_project_w_unique_config(main_config, filename, foldername)
         new_row = pd.Series(list(comb)[:-1] + [filename], index=overview_file.columns)
         overview_file = overview_file.append(new_row, ignore_index=True)
     print("Done")

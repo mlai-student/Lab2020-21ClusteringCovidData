@@ -30,6 +30,7 @@ def run_data_generating_main(data_gen_config, filename):
     if data_gen_config.getboolean("complete_cluster"):
         total_snippets = make_total_ts(df, data_gen_config)
         snippet_examples.fill_from_snippets(total_snippets, test_share=0., data_gen_config=data_gen_config)
+        snippet_examples.add_padding()
     else:
         snippets = divide_ecdc_data_into_snippets(df, data_gen_config)
         if data_gen_config.getboolean("do_data_augmentation"):
