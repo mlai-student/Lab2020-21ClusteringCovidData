@@ -11,8 +11,13 @@ from collections import OrderedDict
 def run_model_training_main(train_config, data_config, filename):
     logging.debug("model_training.Run_model_training started main")
     try:
-        examples = load_Examples_from_file(filename)
-        examples.add_padding()
+        example = load_Examples_from_file(filename)
+        example.add_padding()
+        for snippet in example.train_data:
+            snippet.standardize()
+
+        print("after standardizing")
+
 
         if train_config["metric"] == "euclidean":
             models = [cl.KMeans]
@@ -33,7 +38,7 @@ def run_model_training_main(train_config, data_config, filename):
                   do_data_augmentation, percent_varianz, m_filename, model_name, no_cluster, metrics]
         for n in n_clusters:
             for m in models:
-                model = m(n, metric=metric).fit(examples)
+                model = m(n, metric=metric).fit(example)
                 model_filename = f"{model.name}_{n}_{hash(filename)}"
                 model.save_model(train_config["data_path"], model_filename)
                 for k, v in zip(keys[:-4], values):
@@ -50,7 +55,7 @@ def run_model_training_main(train_config, data_config, filename):
         else:
             model_df = pd.DataFrame.from_dict(model_dict)
         model_df.to_csv(train_config["data_path"] + "models.csv", index=False)
-
+        print("after Training")
     except Exception as Argument:
         print(Argument)
         logging.error("Could not open file(s)")
