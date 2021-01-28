@@ -1,4 +1,4 @@
-
+#TODO Varianz einfuegen wenn benötigt
 #gettign a list of snippets
 def avg_perc_dist(forecast_snippet_list):
     avg_perc_dist_sum = 0
