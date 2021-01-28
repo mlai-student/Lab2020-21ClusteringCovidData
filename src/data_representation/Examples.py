@@ -150,3 +150,10 @@ class Examples:
         except Exception as Argument:
             logging.error("Saving Example class failed with following message:")
             logging.error(str(Argument))
+
+    def standardize(self):
+        for t in self.train_data:
+            t.standardize()
+        for t in self.test_data:
+            t.standardize()
+

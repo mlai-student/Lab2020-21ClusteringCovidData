@@ -27,3 +27,5 @@ class Snippet:
         self.scaler = max_val if max_val > 0 else 1
         if self.scaler != 0:
             self.time_series = np.true_divide(self.time_series, self.scaler)
+            if self.label is not None:
+                self.label /= self.scaler
