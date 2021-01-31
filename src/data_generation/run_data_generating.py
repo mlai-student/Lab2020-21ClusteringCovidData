@@ -13,19 +13,25 @@ from src.data_generation.import_data import get_ecdc_dataset
 
 from src.data_generation.get_additional_info import get_additional_info
 
+
 # start the data generating process with a configuration set given
 def run_data_generating_main(data_gen_config, filename):
     logging.debug("data_generating.Run_data_generating started main")
     # first get the raw data from ecdc csv using the url from config file
     df = get_ecdc_dataset(data_gen_config)
+
+    snippet_examples = Examples()
+
+
     # TODO replace/fill NaN and resize cases but only after analysis beforehand -> control by config ini
     df = df[~(df["popData2019"].isnull())]
     if data_gen_config.getboolean("divide_by_country_population"):
         df["cases"] = df["cases"] / df["popData2019"] * 100
+        #TODO!!!! das funktioniert so nicht
+        #snippet_examples.invert_label_to_nr_cases.insert(0, invert)
     df.fillna(0, inplace=True)
     save_data_frame(df)
 
-    snippet_examples = Examples()
 
     if data_gen_config.getboolean("complete_cluster"):
         total_snippets = make_total_ts(df, data_gen_config)
@@ -55,6 +61,7 @@ def make_total_ts(ecdc_df, data_gen_config):
         country_group = ecdc_df.groupby(['countriesAndTerritories'], as_index=False)
         for country in country_group:
             ts = np.flipud(np.array(country[1]['cases'].array))
+            invert_functions = []
             if data_gen_config.getboolean("replace_negative_values_w_zero"):
                 ts[ts <0] =0
             country_code = country[1]['countryterritoryCode'].array[0]
@@ -62,7 +69,7 @@ def make_total_ts(ecdc_df, data_gen_config):
             continent = country[1]['continentExp'].array[0]
             #if smoothing is wanted every value gets replaced by the nr_days_for_avg mean
             if data_gen_config.getboolean("do_smoothing"):
-                output = smooth_timeline(ts, [], pd.Series(ts), 0, ts.shape[0], data_gen_config, use_zero_filler=True, no_Y=True)
+                output = smooth_timeline(ts, [], pd.Series(ts), 0, ts.shape[0], data_gen_config, invert_functions,use_zero_filler=True, no_Y=True)
                 if type(output) == None:
                     continue
                 else:
@@ -71,7 +78,7 @@ def make_total_ts(ecdc_df, data_gen_config):
             additional_info = get_additional_info(country[0], data_gen_config, country[1])
 
             examples.append(Snippet(ts, None, country_id=country_code, country=country_name,
-                                    continent=continent, flip_order=False, additional_info = additional_info))
+                                    continent=continent, flip_order=False, additional_info = additional_info, invert_label_to_nr_cases=invert_functions))
     except Exception as Argument:
         logging.error("Storing time series failed with following message:")
         logging.error(str(Argument))
@@ -99,6 +106,7 @@ def divide_ecdc_data_into_snippets(ecdc_df, data_gen_config):
             country_name = group[1]['countriesAndTerritories'].array[0]
             continent = group[1]['continentExp'].array[0]
             for start, end in indices:
+                invert_functions = []
                 X = group_sort.iloc[start: end]
                 Y = group_sort.iloc[end + 1: end + 1 + label_length]
                 X_a, Y_a = np.array(X[search_val]), np.array(Y[search_val])
@@ -106,14 +114,14 @@ def divide_ecdc_data_into_snippets(ecdc_df, data_gen_config):
                     X_a[X_a<0],Y_a[Y_a<0] = 0, 0
                 #if smoothing is wanted every value gets replaced by the nr_days_for_avg mean
                 if data_gen_config.getboolean("do_smoothing"):
-                    output = smooth_timeline(X_a, Y_a, group_sort[search_val], start, end, data_gen_config)
+                    output = smooth_timeline(X_a, Y_a, group_sort[search_val], start, end, data_gen_config,invert_functions)
                     if output == None:
                         continue
                     else:
                         X_a, Y_a = output
                 additional_info = get_additional_info(group[0], data_gen_config, group[1])
                 snippets.append(Snippet(X_a, Y_a, country_id=country_code, country=country_name,
-                                        continent=continent, flip_order=False, additional_info = additional_info))
+                                        continent=continent, flip_order=False, additional_info = additional_info, invert_label_to_nr_cases=invert_functions))
     except Exception as Argument:
         logging.error("converting dataset into snippets failed with message:")
         logging.error(str(Argument))

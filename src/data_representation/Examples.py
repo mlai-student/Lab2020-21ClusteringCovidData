@@ -156,4 +156,3 @@ class Examples:
             t.standardize()
         for t in self.test_data:
             t.standardize()
-
