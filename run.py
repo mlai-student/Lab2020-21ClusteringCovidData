@@ -11,9 +11,11 @@ from datetime import date
 from pathlib import Path
 import numpy as np
 from tqdm import tqdm
+import shutil
 from src.data_generation.run_data_generating import run_data_generating_main
 from src.model_training.run_model_training import run_model_training_main
 from src.model_prediction.run_model_prediction import run_model_prediction_main
+from src.data_representation.config_to_dict import get_config_dict
 
 def run_with_std_config():
     print("Run started with standard config")
@@ -56,11 +58,21 @@ def main(path_to_cfg):
     logging.basicConfig(filename=run_log_filename, level=logging.DEBUG)
     # basis for filenames later on
     today = date.today().strftime("%b-%d-%Y")
-    Path("data/" + today).mkdir(parents=True, exist_ok=True)
     foldername = "data/{}/".format(today)
-    overview_file = pd.DataFrame([], columns=["divide_by_country_population", "do_smoothing", "nr_days_for_avg",
-                                              "do_data_augmentation", "percent_varianz", "metric", "models",
-                                              "n_clusters", "filename_example", "filename_model"])
+    #check if folder already exists and throw warning:
+    folder_already_exists = os.path.isdir(foldername)
+    if folder_already_exists:
+        print("Attention the folder already exists")
+        #if data generation is supposed to run then remove the folder recursively
+        if main_config["main_flow_settings"].getboolean("Run_data_generation"):
+            print(f"Run data generation is set to yes so {foldername} gets removed")
+            shutil.rmtree(foldername)
+
+    Path(foldername).mkdir(parents=True, exist_ok=True)
+    print(f"data folder created under path: {foldername}")
+    #copy the config file into the folder to track what has been done there
+    shutil.copyfile(path_to_cfg, foldername+"used_config.ini")
+
     # go through all required cominations defined in config.ini
     # possible variables for combinations:
     lst_divide_by_country_population = json.loads(
@@ -70,6 +82,8 @@ def main(path_to_cfg):
     # missing choosed method -> still open to implement
     lst_do_data_augmentation = json.loads(main_config["data_generating_settings"]["do_data_augmentation"])
     lst_percent_varianz = json.loads(main_config["data_generating_settings"]["percent_varianz"])
+    forecast_evaluation_function = json.loads(main_config["model_prediction_settings"]["forecast_evaluation_function"])
+    forecast_function = json.loads(main_config["model_prediction_settings"]["forecast_function"])
     metric = json.loads(main_config["model_training_settings"]["metric"])
     models = json.loads(main_config["model_training_settings"]["models"])
     n_clusters = json.loads(main_config["model_training_settings"]["n_clusters"])
@@ -79,7 +93,7 @@ def main(path_to_cfg):
 
     config_comb = list(itertools.product(lst_divide_by_country_population,
                                          lst_do_smoothing, lst_nr_days_for_avg,
-                                         lst_do_data_augmentation, lst_percent_varianz))
+                                         lst_do_data_augmentation, lst_percent_varianz, forecast_evaluation_function, forecast_function))
 
     models_comb = list(itertools.product(metric, models, n_clusters))
     valid_model_combs = {"euclidean": ["KMedoids", "KMeans", "DBSCAN"],
@@ -108,6 +122,8 @@ def main(path_to_cfg):
         main_config["data_generating_settings"]["nr_days_for_avg"] = str(comb[2])
         main_config["data_generating_settings"]["do_data_augmentation"] = str(comb[3])
         main_config["data_generating_settings"]["percent_varianz"] = str(comb[4])
+        main_config["model_prediction_settings"]["forecast_evaluation_function"] = str(comb[5])
+        main_config["model_prediction_settings"]["forecast_function"]  = str(comb[6])
 
         for m_comb in models_comb:
             if str(m_comb[1]) in valid_model_combs[str(m_comb[0])]:
@@ -117,11 +133,20 @@ def main(path_to_cfg):
                 filename_example = foldername + str(i)
                 filename_model = f"{str(m_comb[1])}_{hash(filename_example)}"
                 run_project_w_unique_config(main_config, filename_example, filename_model, foldername)
-                new_row = pd.Series(list(comb) + list(m_comb) + [filename_example, filename_model], index=overview_file.columns)
-                overview_file = overview_file.append(new_row, ignore_index=True)
-    print("Done")
 
-    overview_file.to_csv(foldername + "overview.csv")
+                # write entry to the overview.csv
+                cfg_settings_dict = get_config_dict(main_config)
+                cfg_settings_dict["filename_example"] = filename_example
+                cfg_settings_dict["filename_model"] = filename_model
+                csv_filename=foldername + "overview.csv"
+                if os.path.isfile(csv_filename):
+                    df = pd.read_csv(csv_filename)
+                    pd_dict = pd.Series(cfg_settings_dict).to_frame().T
+                    model_df = df.append(pd_dict.iloc[0])
+                else:
+                    model_df = pd.Series(cfg_settings_dict).to_frame().T
+                model_df.to_csv(csv_filename, index=False)
+    print("Done")
     logging.shutdown()
     return 0
 
