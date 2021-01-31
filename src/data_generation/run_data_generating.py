@@ -35,7 +35,7 @@ def run_data_generating_main(data_gen_config, filename):
         snippets = divide_ecdc_data_into_snippets(df, data_gen_config)
         if data_gen_config.getboolean("do_data_augmentation"):
             data_augmentation(snippets, data_gen_config)
-        snippet_examples.fill_from_snippets(snippets, test_share=0., data_gen_config=data_gen_config)
+        snippet_examples.fill_from_snippets(snippets, test_share=0.3, data_gen_config=data_gen_config)
 
     snippet_examples.save_to_file(filename)
     logging.debug("data_generating.Run_data_generating finished main")

@@ -80,10 +80,11 @@ class Examples:
             country_id_list.extend(([snippet.country_id] * length))
             continent_list.extend([snippet.continent] * length)
         cases_dict = {'cases': ts_list,
-                'countriesAndTerritories': country_list,
-                'countryterritoryCode': country_id_list,
-                'continentExp': continent_list}
-        df = pd.DataFrame(cases_dict, columns=['cases', 'countriesAndTerritories', 'countryterritoryCode', 'continentExp'])
+                      'countriesAndTerritories': country_list,
+                      'countryterritoryCode': country_id_list,
+                      'continentExp': continent_list}
+        df = pd.DataFrame(cases_dict,
+                          columns=['cases', 'countriesAndTerritories', 'countryterritoryCode', 'continentExp'])
         return df
 
     def divide_by_label(self, n_cluster, labels):
@@ -141,7 +142,6 @@ class Examples:
         X_pca = pca.transform(X)
         return X_pca
 
-
     def save_to_file(self, filename):
         try:
             pkl_file = open(filename, "wb")
@@ -157,3 +157,8 @@ class Examples:
         for t in self.test_data:
             t.standardize()
 
+    def resolve_standardize(self):
+        for t in self.train_data:
+            t.de_standardize()
+        for t in self.test_data:
+            t.de_standardize()

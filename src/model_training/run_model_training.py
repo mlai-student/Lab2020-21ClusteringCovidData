@@ -10,8 +10,8 @@ from collections import OrderedDict
 
 def run_model_training_main(train_config, filename_example, filename_model):
     logging.debug("model_training.Run_model_training started main")
-    d_class = {"KMedoids": cl.KMedoids, "KMeans": cl.KMeans, "DBSCAN": cl.DBSCAN, "TS_KMeans": cl.TS_KMeans}
-#, "cl.DBSCAN", "cl.TS_KMeans", "cl.TS_KShape"]}
+    d_class = {"KMedoids": cl.KMedoids, "KMeans": cl.KMeans, "DBSCAN": cl.DBSCAN,
+               "TS_KMeans": cl.TS_KMeans, "TS_KShape": cl.TS_KShape}
     try:
         example = load_Examples_from_file(filename_example)
         metric = train_config['metric']

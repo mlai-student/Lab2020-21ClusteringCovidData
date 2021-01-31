@@ -32,6 +32,7 @@ def run_project_w_unique_config(config, filename_example, filename_model, folder
     try:
         if config["main_flow_settings"].getboolean("Run_model_training"):
             run_model_training_main(config["model_training_settings"], filename_example, filename_model)
+            config["main_flow_settings"]["generated_model_path"] = filename_model
     except Exception as Argument:
         logging.error("Model training process failed with the following error message:")
         logging.error(str(Argument))
@@ -113,7 +114,6 @@ def main(path_to_cfg):
                 main_config["model_training_settings"]["metric"] = str(m_comb[0])
                 main_config["model_training_settings"]["models"] = str(m_comb[1])
                 main_config["model_training_settings"]["n_clusters"] = str(m_comb[2])
-
                 filename_example = foldername + str(i)
                 filename_model = f"{str(m_comb[1])}_{hash(filename_example)}"
                 run_project_w_unique_config(main_config, filename_example, filename_model, foldername)

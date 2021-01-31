@@ -1,5 +1,4 @@
 import os, json, pickle, logging
-import numpy as np
 import pandas as pd
 import src.model_prediction.forecast_evaluation_functions as forecast_evaluation_functions
 import src.model_prediction.benchmark_algorithms as forecast_functions
@@ -17,16 +16,26 @@ def forecast_example_set(main_config):
     # Supposing that path is saved under "generated_data_path" in main_config
     data_filename = main_config["main_flow_settings"]["generated_data_path"]
     data_foldername = main_config["main_flow_settings"]["generated_folder_path"]
+    model_filename = main_config["main_flow_settings"]["generated_model_path"]
     # load generatet dataset
     dataset_examples = load_Examples_from_file(data_filename)
     # run specified forecast, store the results as Examples file and compute precision of forecast
     forecasting_function_name = main_config["model_prediction_settings"]["forecast_function"]
     forecasting_function = getattr(forecast_functions, forecasting_function_name)
-    forecast_a_snippet_list(forecasting_function, dataset_examples.train_data)
+    if forecasting_function_name == "forecast_LSTM_with_cluster":
+        with open(data_foldername + "model/" + model_filename, 'rb') as f:
+            model = pickle.load(f)
+        forecasting_function(model, dataset_examples)
+    elif forecasting_function_name == "forecast_LSTM":
+        forecasting_function(dataset_examples)
+    else:
+        # Changed datset_examples.train_data to test_data
+        forecast_a_snippet_list(forecasting_function, dataset_examples.test_data)
 
     forecast_evaluation_function_name = main_config["model_prediction_settings"]["forecast_evaluation_function"]
+    # Changed datset_examples.train_data to test_data
     forecast_evaluation = getattr(forecast_evaluation_functions, forecast_evaluation_function_name)(
-        dataset_examples.train_data)
+        dataset_examples.test_data)
     forecast_dataset_filename = data_filename + "_w_forecast_" + forecast_evaluation_function_name + "_forecasting_fct_" + forecasting_function_name
     dataset_examples.save_to_file(forecast_dataset_filename)
 

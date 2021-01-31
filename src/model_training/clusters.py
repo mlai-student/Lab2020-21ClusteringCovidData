@@ -28,7 +28,7 @@ class GenericCluster:
 
     def predict(self, X_test: Examples):
         try:
-            pred = self.model.predict(self.preprocess(X_test))
+            pred = self.model.predict(self.preprocess(X_test, predict=True))
             return pred
         except NotFittedError as e:
             print(repr(e))
@@ -69,7 +69,7 @@ class GenericCluster:
             logging.error("Saving model file failed with following message:")
             logging.error(str(Argument))
 
-    def preprocess(self, X: Examples):
+    def preprocess(self, X: Examples, predict=False):
         pass
 
     def get_examples_from_cluster(self):
@@ -152,15 +152,13 @@ class KMedoids(GenericCluster):
         self.metric = metric
         self.n_clusters = n_clusters
 
-    def preprocess(self, X: Examples):
-        if self.metric == "dtw":
-            return X.to_distance_matrix(metric=self.metric)
-        elif self.metric == "euclidean":
+    def preprocess(self, X: Examples, predict=False):
+        if self.metric == "euclidean":
             X_train, X_test, y_train, y_test = X.split_examples()
-            if X_test:
-                return np.concatenate((X_train, X_test))
-            else:
+            if not predict:
                 return X_train
+            else:
+                return X_test
         return None
 
 
@@ -171,12 +169,12 @@ class KMeans(GenericCluster):
         self.n_clusters = n_clusters
         self.metric = "euclidean"
 
-    def preprocess(self, X: Examples):
+    def preprocess(self, X: Examples, predict=False):
         X_train, X_test, y_train, y_test = X.split_examples()
-        if not (X_test is None):
-            return np.concatenate((X_train, X_test))
-        else:
+        if not predict:
             return X_train
+        else:
+            return X_test
 
 
 class DBSCAN(GenericCluster):
@@ -190,15 +188,15 @@ class DBSCAN(GenericCluster):
         self.n_clusters = eps
         self.eps = eps
 
-    def preprocess(self, X):
+    def preprocess(self, X, predict=False):
         if self.metric == "dtw":
             return X.to_distance_matrix(metric=self.metric)
         elif self.metric == "euclidean":
             X_train, X_test, y_train, y_test = X.split_examples()
-            if X_test:
-                return np.concatenate((X_train, X_test))
-            else:
+            if not predict:
                 return X_train
+            else:
+                return X_test
         return None
 
     def update_clusters(self):
@@ -212,12 +210,12 @@ class TS_KernelKMeans(GenericCluster):
         self.n_clusters = n_clusters
         self.metric = "dtw"
 
-    def preprocess(self, X: Examples):
+    def preprocess(self, X: Examples, predict=False):
         X_train, X_test, y_train, y_test = X.to_ts_snippet()
-        if X_test:
-            return np.concatenate((X_train, X_test))
-        else:
+        if not predict:
             return X_train
+        else:
+            return X_test
 
 
 class TS_KShape(GenericCluster):
@@ -227,12 +225,12 @@ class TS_KShape(GenericCluster):
         self.n_clusters = n_clusters
         self.metric = "dtw"
 
-    def preprocess(self, X: Examples):
+    def preprocess(self, X: Examples, predict=False):
         X_train, X_test, y_train, y_test = X.to_ts_snippet()
-        if X_test:
-            return np.concatenate((X_train, X_test))
-        else:
+        if not predict:
             return X_train
+        else:
+            return X_test
 
 
 # Carefull, implements a
@@ -243,9 +241,9 @@ class TS_KMeans(GenericCluster):
         self.n_clusters = n_clusters
         self.metric = metric
 
-    def preprocess(self, X: Examples):
-        # print("Attention: At the Moment, time series scaler is implemented, with mean=0 and std=5")
-        # X = [x.to_vector() for x in X.train_data]
-        # X = TimeSeriesScalerMeanVariance(mu=0., std=5.).fit_transform(X)
-        X, _, _, _ = X.to_ts_snippet()
-        return X
+    def preprocess(self, X: Examples, predict=False):
+        X_train, X_test, y_train, y_test = X.to_ts_snippet()
+        if not predict:
+            return X_train
+        else:
+            return X_test

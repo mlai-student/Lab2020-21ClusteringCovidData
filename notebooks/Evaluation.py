@@ -34,12 +34,17 @@ import pickle
 import os
 import pandas as pd
 PROJECT_PATH = os.getcwd().replace("notebooks", "")
-DATA_GEN_FOLDER_NAME = "Jan-19-2021"
+DATA_GEN_FOLDER_NAME = "Jan-31-2021"
 DATASET_PATH = PROJECT_PATH + "data/" + DATA_GEN_FOLDER_NAME + "/"
-OVERVIEW_DATASET_PATH = DATASET_PATH + "models.csv"
+OVERVIEW_DATASET_PATH = DATASET_PATH + "overview.csv"
 model_df = pd.read_csv(OVERVIEW_DATASET_PATH)
 
 model_df.head(6)
+
+# %%
+FORECAST_DATASET_PATH = DATASET_PATH + "forecasting_results.csv"
+forecast_df = pd.read_csv(FORECAST_DATASET_PATH)
+forecast_df.head()
 
 # %%
 import copy
