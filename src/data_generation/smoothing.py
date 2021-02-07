@@ -10,7 +10,7 @@ class smooth_invert:
         return (x - self.prev_days_smooth) / self.shift
 
 
-# smooth a timeline X with a value Y which comes from a coutry timline group and if from start to end
+# smooth a timeline X with a value Y which comes from a country timeline group and if from start to end
 # average with mean over data_gen_config[nr_days_for_avg] days
 # returning None if timeline is not smoothable
 def smooth_timeline(X, Y, group_sort, start, end, data_gen_config, invert_functions, use_zero_filler=False, no_Y=False):

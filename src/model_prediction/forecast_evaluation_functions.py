@@ -9,5 +9,5 @@ def avg_perc_dist(forecast_snippet_list):
             inverted_forecast = snippet.invert_to_abs_cases(snippet.forecast)
 
             avg_perc_dist_sum += abs(inverted_forecast-inverted_label)/inverted_label
-            samples_count +=1
+            samples_count += 1
     return avg_perc_dist_sum/samples_count

@@ -15,7 +15,7 @@ class Snippet:
         self.additional_info = additional_info
         self.scaler = 1
 
-        #list of function objects that have to be applied when inverting a forecast to abs case number
+        #list of class objects that have to be applied when inverting a forecast to abs case number
         self.invert_label_to_nr_cases = invert_label_to_nr_cases
 
     def invert_to_abs_cases(self, x):
@@ -37,8 +37,13 @@ class Snippet:
             self.time_series = np.true_divide(self.time_series, self.scaler)
             if self.label is not None:
                 self.label /= self.scaler
+            if self.forecast is not None:
+                self.forecast /= self.scaler
 
     def de_standardize(self):
         if self.scaler != 0:
-            self.label *= self.scaler
+            if self.label is not None:
+                self.label *= self.scaler
             self.time_series *= self.scaler
+            if self.forecast is not None:
+                self.forecast *= self.scaler

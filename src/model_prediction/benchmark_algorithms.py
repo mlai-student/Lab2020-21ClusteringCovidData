@@ -19,13 +19,16 @@ def seasonal_naive_forecast(time_series, T=7):
 
 
 def lstm_forecast(ex: Examples):
-    print(len(ex.test_data))
+    ex.standardize()
     train_ex = Examples()
     train_ex.fill_from_snippets(ex.train_data, test_share=0.0)
     test_ex = Examples()
     test_ex.fill_from_snippets(ex.test_data, test_share=0.0)
-    print(len(test_ex.train_data))
-    apply_lstm(train_ex, test_ex)
+    predictions = apply_lstm(train_ex, test_ex)
+    '''Transfering prediction to original snippet'''
+    for snippet, pred in zip(ex.test_data, predictions):
+        snippet.forecast = pred
+    ex.resolve_standardize()
 
 
 def forecast_LSTM_with_cluster(model: GenericCluster, examples: Examples):
@@ -52,5 +55,6 @@ def forecast_LSTM_with_cluster(model: GenericCluster, examples: Examples):
             for idx, pred in zip(rev_idx, predictions):
                 snippet = examples.test_data[idx]
                 snippet.forecast = pred
+
 
 

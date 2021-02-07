@@ -158,6 +158,7 @@ class Examples:
             t.standardize()
 
     def resolve_standardize(self):
+        print(len(self.train_data))
         for t in self.train_data:
             t.de_standardize()
         for t in self.test_data:

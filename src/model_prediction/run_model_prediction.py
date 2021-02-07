@@ -26,7 +26,7 @@ def forecast_example_set(main_config):
         with open(data_foldername + "model/" + model_filename, 'rb') as f:
             model = pickle.load(f)
         forecasting_function(model, dataset_examples)
-    elif forecasting_function_name == "forecast_LSTM":
+    elif forecasting_function_name == "lstm_forecast":
         forecasting_function(dataset_examples)
     else:
         # Changed datset_examples.train_data to test_data
