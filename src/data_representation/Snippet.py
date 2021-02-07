@@ -7,7 +7,7 @@ class Snippet:
         if flip_order:
             self.time_series = np.flipud(self.time_series)
         self.label = label
-        self.forecast = 0
+        self.forecast = None
         self.country_id = country_id
         self.country = country
         self.continent = continent
