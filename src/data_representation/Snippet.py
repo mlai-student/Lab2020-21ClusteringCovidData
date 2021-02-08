@@ -47,3 +47,4 @@ class Snippet:
             self.time_series *= self.scaler
             if self.forecast is not None:
                 self.forecast *= self.scaler
+            self.scaler = 1

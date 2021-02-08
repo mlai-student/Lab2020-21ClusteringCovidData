@@ -7,7 +7,9 @@ class smooth_invert:
         self.shift = shift
 
     def invert(self, x):
-        return (x - self.prev_days_smooth) / self.shift
+        if isinstance(self.prev_days_smooth, list):
+            self.prev_days_smooth = self.prev_days_smooth[0]
+        return max((x - (self.prev_days_smooth/self.shift)) / self.shift, 0)
 
 
 # smooth a timeline X with a value Y which comes from a country timeline group and if from start to end
@@ -34,7 +36,7 @@ def smooth_timeline(X, Y, group_sort, start, end, data_gen_config, invert_functi
     if no_Y:
         return np.array(X_out)
     Y_out = float(smooth_data[end - nr_days_for_avg: end + 1].dot(conv_matrix))
-    last_conv_entry = conv_matrix[-1] if conv_matrix[-1] != 0 else 0
+    last_conv_entry = conv_matrix[-1]  # if conv_matrix[-1] != 0 else 0
     invert_functions.insert(0, smooth_invert(float(smooth_data[end - nr_days_for_avg: end - 1].dot(conv_matrix[:-1])),
                                              last_conv_entry))
     return np.array(X_out), np.array(Y_out)

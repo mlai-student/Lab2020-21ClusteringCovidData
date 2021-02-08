@@ -31,8 +31,8 @@ class Examples:
 
         self.additional_information_distance_functions = {}
 
-    def fill_from_snippets(self, train_snippets,test_snippets=[], data_gen_config=None):
-        self.test_data =  test_snippets
+    def fill_from_snippets(self, train_snippets, test_snippets=[], data_gen_config=None):
+        self.test_data = test_snippets
         self.train_data = train_snippets
         self.n_examples = len(self.test_data) + len(self.train_data)
 
