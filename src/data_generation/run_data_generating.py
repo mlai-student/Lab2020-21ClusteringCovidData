@@ -1,5 +1,6 @@
 import pandas as pd
 import numpy as np
+import random
 import logging
 import random
 from datetime import date
@@ -35,13 +36,21 @@ def run_data_generating_main(data_gen_config, filename):
 
     if data_gen_config.getboolean("complete_cluster"):
         total_snippets = make_total_ts(df, data_gen_config)
-        snippet_examples.fill_from_snippets(total_snippets, test_share=0., data_gen_config=data_gen_config)
+        snippet_examples.fill_from_snippets(total_snippets, data_gen_config=data_gen_config)
         snippet_examples.add_padding()
     else:
-        snippets = divide_ecdc_data_into_snippets(df, data_gen_config)
+        #get a random subset of countries for the test and train data:
+        test_share = float(data_gen_config["test_country_share"])
+        countries = df['countriesAndTerritories'].unique()
+        test_countries = np.random.choice(countries, (int)(test_share*len(countries)), replace=False)
+        test_data = df.loc[df['countriesAndTerritories'].isin(test_countries)]
+        train_data = df.loc[~df['countriesAndTerritories'].isin(test_countries)]
+        test_snippets = divide_into_snippets(test_data, data_gen_config)
+        train_snippets = divide_into_snippets(train_data, data_gen_config)
         if data_gen_config.getboolean("do_data_augmentation"):
-            data_augmentation(snippets, data_gen_config)
-        snippet_examples.fill_from_snippets(snippets, test_share=0.3, data_gen_config=data_gen_config)
+            data_augmentation(test_snippets, data_gen_config)
+            data_augmentation(train_snippets, data_gen_config)
+        snippet_examples.fill_from_snippets(train_snippets, test_snippets=test_snippets, data_gen_config=data_gen_config)
 
     snippet_examples.save_to_file(filename)
     logging.debug("data_generating.Run_data_generating finished main")
@@ -85,7 +94,7 @@ def make_total_ts(ecdc_df, data_gen_config):
     return examples
 
 
-def divide_ecdc_data_into_snippets(ecdc_df, data_gen_config):
+def divide_into_snippets(ecdc_df, data_gen_config):
     snippets = []
     search_val = data_gen_config["examples_search_val"]
     group_by = data_gen_config["examples_group_by"]
