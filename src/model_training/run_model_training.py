@@ -18,7 +18,7 @@ def run_model_training_main(train_config, filename_example, filename_model):
         model_name = train_config['models']
         c_model = d_class[model_name]
         n_clusters = json.loads(train_config["n_clusters"])
-
+        example.standardize()
         model = c_model(n_clusters, metric=metric).fit(example)
         model.save_model(train_config["data_path"], filename_model)
 

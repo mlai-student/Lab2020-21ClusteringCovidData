@@ -127,11 +127,12 @@ def main(path_to_cfg):
 
         for m_comb in models_comb:
             if str(m_comb[1]) in valid_model_combs[str(m_comb[0])]:
+                print(f"Start training with {m_comb[1]} with metric {m_comb[0]}")
                 main_config["model_training_settings"]["metric"] = str(m_comb[0])
                 main_config["model_training_settings"]["models"] = str(m_comb[1])
                 main_config["model_training_settings"]["n_clusters"] = str(m_comb[2])
                 filename_example = foldername + str(i)
-                filename_model = f"{str(m_comb[1])}_{hash(filename_example)}"
+                filename_model = f"{str(m_comb[1])}_{hash(filename_example)}_{str(m_comb[2])}"
                 run_project_w_unique_config(main_config, filename_example, filename_model, foldername)
 
                 # write entry to the overview.csv

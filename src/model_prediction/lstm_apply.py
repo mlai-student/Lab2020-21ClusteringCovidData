@@ -19,7 +19,7 @@ def apply_lstm(train_ex: Examples, test_ex: Examples):
     hidden_layer_size = 50
     num_layers = 1
     max_prediction_length = 1
-    epochs = 100
+    epochs = 300
     batch_size = 50
     learning_rate = 1e-2
 
@@ -48,7 +48,7 @@ def apply_lstm(train_ex: Examples, test_ex: Examples):
 
     optimizer = optim.Adam(forecaster.parameters(), lr=learning_rate)
     criterion = nn.MSELoss()
-    scheduler = ReduceLROnPlateau(optimizer, 'min', patience=3, min_lr=1e-5)
+    scheduler = ReduceLROnPlateau(optimizer, 'min', patience=3, min_lr=1e-5, verbose=True)
 
     best_loss = np.inf
     for epoch in range(1, epochs+1):
@@ -86,7 +86,7 @@ def apply_lstm(train_ex: Examples, test_ex: Examples):
             best_loss = val_loss
             best_forecaster = copy.deepcopy(forecaster)
 
-        if epoch % 10 == 0:
+        if epoch % 50 == 0:
             print("Epoch: %d, loss: %1.5f" % (epoch, train_loss))
 
     print("Start evaluating forecaster")

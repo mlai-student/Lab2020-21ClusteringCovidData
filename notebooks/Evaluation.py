@@ -34,7 +34,7 @@ import pickle
 import os
 import pandas as pd
 PROJECT_PATH = os.getcwd().replace("notebooks", "")
-DATA_GEN_FOLDER_NAME = "Jan-31-2021"
+DATA_GEN_FOLDER_NAME = "Feb-08-2021"
 DATASET_PATH = PROJECT_PATH + "data/" + DATA_GEN_FOLDER_NAME + "/"
 OVERVIEW_DATASET_PATH = DATASET_PATH + "overview.csv"
 model_df = pd.read_csv(OVERVIEW_DATASET_PATH)
@@ -84,17 +84,17 @@ score_overview = pd.concat([score_overview, score_df], axis=1)
 score_overview.head()
 
 # %%
-score_overview
+model_df['data_generating_settings nr_days_for_avg']
 
 # %%
+import pickle
 # cond_df = score_overview[(score_overview.no_cluster==7) & (score_overview["metric"]=="euclidean") & (score_overview.do_smoothing=="yes")]
 # # (score_overview["metric"]=="dtw") & (score_overview.no_cluster==5) & 
 # best_row = cond_df['silhouette'].idxmax()
 best_row = 5
-filename = score_overview['filename'][best_row]
+filename = model_df['main_flow_settings generated_model_path'][best_row]
 with open(DATASET_PATH + "model/" + filename, 'rb') as f:
         model = pickle.load(f)
-print(score_overview.iloc[best_row])
 model.plot_cluster().show()
 
 # %%
