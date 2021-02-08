@@ -6,6 +6,7 @@ import random
 from datetime import date
 from pathlib import Path
 from tqdm import tqdm
+from copy import deepcopy as dc
 from src.data_representation.Snippet import Snippet
 from src.data_representation.Examples import Examples
 from src.data_generation.smoothing import smooth_timeline
@@ -118,8 +119,9 @@ def divide_into_snippets(ecdc_df, data_gen_config):
             for start, end in indices:
                 invert_functions = []
                 X = group_sort.iloc[start: end]
-                Y = group_sort.iloc[end + 1: end + 1 + label_length]
+                Y = group_sort.iloc[end: end + label_length]
                 X_a, Y_a = np.array(X[search_val]), np.array(Y[search_val])
+                Y_orig = dc(Y_a)
                 #if smoothing is wanted every value gets replaced by the nr_days_for_avg mean
                 if data_gen_config.getboolean("do_smoothing"):
                     output = smooth_timeline(X_a, Y_a, group_sort[search_val], start, end, data_gen_config,invert_functions)
@@ -130,7 +132,7 @@ def divide_into_snippets(ecdc_df, data_gen_config):
                 else:
                     Y_a = Y_a[0]
                 additional_info = get_additional_info(group[0], data_gen_config, group[1])
-                snippets.append(Snippet(X_a, Y_a, country_id=country_code, country=country_name,
+                snippets.append(Snippet(X_a, Y_a, original_label=Y_orig, country_id=country_code, country=country_name,
                                         continent=continent, flip_order=False, additional_info = additional_info, invert_label_to_nr_cases=invert_functions))
     except Exception as Argument:
         logging.error("converting dataset into snippets failed with message:")

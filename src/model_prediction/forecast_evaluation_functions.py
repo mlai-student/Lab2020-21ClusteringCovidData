@@ -7,20 +7,22 @@ def avg_perc_dist(forecast_snippet_list):
     avg_perc_dist_sum = 0
     samples_count = 0
     for snippet in forecast_snippet_list:
-        inverted_label = snippet.invert_to_abs_cases(snippet.label)
+        inverted_label = round(snippet.invert_to_abs_cases(snippet.label))
+        #if inverted_label <1000:
+        #    continue
         if inverted_label < 0:
             print(f"Snippet label: {snippet.label} Snippet forecast {snippet.forecast} and inverted label {inverted_label}")
         if inverted_label != 0:
-            inverted_forecast = snippet.invert_to_abs_cases(snippet.forecast)
+            inverted_forecast = round(snippet.invert_to_abs_cases(snippet.forecast))
             if inverted_forecast < 0:
                 print(f"Snippet label: {snippet.label} Snippet forecast {snippet.forecast} and inverted forecast {inverted_forecast}")
-                print(f"Inverted label: {inverted_label}")
-                print(f"huhu {snippet.invert_label_to_nr_cases}")
-                print(f"haha {len(snippet.invert_label_to_nr_cases)}")
-                x = snippet.forecast
-                for invert_object in snippet.invert_label_to_nr_cases:
-                    x = invert_object.invert(x)
-                    print(x)
+
+
+            if abs(round(inverted_forecast)-round(inverted_label))/round(inverted_label) > 10:
+                print(f"hier zu hoch: orignal: {snippet.label}, {snippet.forecast}")
+                print(f"inverted: {inverted_label}, {inverted_forecast}")
+                print(f"original label {snippet.original_label}")
+                print([round(snippet.invert_to_abs_cases(0.1*i),2) for i in range(10)])
 
             avg_perc_dist_sum += abs(inverted_forecast-inverted_label)/inverted_label
             samples_count += 1
