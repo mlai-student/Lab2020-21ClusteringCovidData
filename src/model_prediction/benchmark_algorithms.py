@@ -19,7 +19,6 @@ def seasonal_naive_forecast(time_series, T=7):
 
 
 def lstm_forecast(ex: Examples):
-    ex.standardize()
     train_ex = Examples()
     train_ex.fill_from_snippets(ex.train_data)
     test_ex = Examples()
@@ -28,11 +27,9 @@ def lstm_forecast(ex: Examples):
     '''Transfering prediction to original snippet'''
     for snippet, pred in zip(ex.test_data, predictions):
         snippet.forecast = pred
-    ex.resolve_standardize()
 
 
 def forecast_LSTM_with_cluster(model: GenericCluster, examples: Examples):
-    examples.standardize()
     pred_cluster = [[] for _ in range(model.n_clusters)]
     cluster_ex = model.clusters
     pred_label = model.predict(examples)
@@ -45,7 +42,6 @@ def forecast_LSTM_with_cluster(model: GenericCluster, examples: Examples):
             rev_idx = [p[1] for p in pred_cluster[l]]
             test_ex = Examples()
             test_ex.fill_from_snippets(test_snippets)
-            cluster.standardize()
 
             print(f"\n\nStarting LSTM Training with {len(cluster.train_data)} training examples and "
                   f"{len(pred_cluster[l])} examples to predict\n")
@@ -55,6 +51,3 @@ def forecast_LSTM_with_cluster(model: GenericCluster, examples: Examples):
             for idx, pred in zip(rev_idx, predictions):
                 snippet = examples.test_data[idx]
                 snippet.forecast = pred
-
-
-

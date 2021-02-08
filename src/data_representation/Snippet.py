@@ -1,5 +1,12 @@
 import numpy as np
 
+
+class standardize_invert:
+    def __init__(self,multiplicator):
+        self.multiplicator = multiplicator
+    def invert(self,x):
+        return x*self.multiplicator
+
 class Snippet:
     def __init__(self, ts: np.array, label, country_id = None, country=None,
                 continent=None, flip_order=False, additional_info={}, invert_label_to_nr_cases=[]):
@@ -39,12 +46,4 @@ class Snippet:
                 self.label /= self.scaler
             if self.forecast is not None:
                 self.forecast /= self.scaler
-
-    def de_standardize(self):
-        if self.scaler != 0:
-            if self.label is not None:
-                self.label *= self.scaler
-            self.time_series *= self.scaler
-            if self.forecast is not None:
-                self.forecast *= self.scaler
-            self.scaler = 1
+            self.invert_label_to_nr_cases.insert(0,standardize_invert(self.scaler))

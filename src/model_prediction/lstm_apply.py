@@ -19,7 +19,7 @@ def apply_lstm(train_ex: Examples, test_ex: Examples):
     hidden_layer_size = 50
     num_layers = 1
     max_prediction_length = 1
-    epochs = 10
+    epochs = 100
     batch_size = 50
     learning_rate = 1e-2
 
@@ -54,7 +54,7 @@ def apply_lstm(train_ex: Examples, test_ex: Examples):
     best_loss = np.inf
     for epoch in range(1, epochs+1):
         '''
-        Training Routine 
+        Training Routine
         '''
         train_loss = 0
         for train_batch in train_dataloader:
@@ -70,7 +70,7 @@ def apply_lstm(train_ex: Examples, test_ex: Examples):
             train_loss += loss.item()
 
         '''
-        Validation Routine 
+        Validation Routine
         '''
         val_loss = 0
         for val_batch in val_dataloader:

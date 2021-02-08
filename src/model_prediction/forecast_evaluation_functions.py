@@ -14,6 +14,13 @@ def avg_perc_dist(forecast_snippet_list):
             inverted_forecast = snippet.invert_to_abs_cases(snippet.forecast)
             if inverted_forecast < 0:
                 print(f"Snippet label: {snippet.label} Snippet forecast {snippet.forecast} and inverted forecast {inverted_forecast}")
+                print(f"Inverted label: {inverted_label}")
+                print(f"huhu {snippet.invert_label_to_nr_cases}")
+                print(f"haha {len(snippet.invert_label_to_nr_cases)}")
+                x = snippet.forecast
+                for invert_object in snippet.invert_label_to_nr_cases:
+                    x = invert_object.invert(x)
+                    print(x)
 
             avg_perc_dist_sum += abs(inverted_forecast-inverted_label)/inverted_label
             samples_count += 1

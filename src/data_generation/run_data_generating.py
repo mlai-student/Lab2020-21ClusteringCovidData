@@ -31,6 +31,8 @@ def run_data_generating_main(data_gen_config, filename):
         #TODO!!!! das funktioniert so nicht
         #snippet_examples.invert_label_to_nr_cases.insert(0, invert)
     df.fillna(0, inplace=True)
+    if data_gen_config.getboolean("replace_negative_values_w_zero"):
+        df["cases"] = df["cases"].clip(lower=0)
     save_data_frame(df)
 
 
@@ -51,6 +53,7 @@ def run_data_generating_main(data_gen_config, filename):
             data_augmentation(test_snippets, data_gen_config)
             data_augmentation(train_snippets, data_gen_config)
         snippet_examples.fill_from_snippets(train_snippets, test_snippets=test_snippets, data_gen_config=data_gen_config)
+        snippet_examples.standardize()
 
     snippet_examples.save_to_file(filename)
     logging.debug("data_generating.Run_data_generating finished main")
@@ -71,8 +74,6 @@ def make_total_ts(ecdc_df, data_gen_config):
         for country in country_group:
             ts = np.flipud(np.array(country[1]['cases'].array))
             invert_functions = []
-            if data_gen_config.getboolean("replace_negative_values_w_zero"):
-                ts[ts <0] =0
             country_code = country[1]['countryterritoryCode'].array[0]
             country_name = country[1]['countriesAndTerritories'].array[0]
             continent = country[1]['continentExp'].array[0]
@@ -119,8 +120,6 @@ def divide_into_snippets(ecdc_df, data_gen_config):
                 X = group_sort.iloc[start: end]
                 Y = group_sort.iloc[end + 1: end + 1 + label_length]
                 X_a, Y_a = np.array(X[search_val]), np.array(Y[search_val])
-                if data_gen_config.getboolean("replace_negative_values_w_zero"):
-                    X_a[X_a<0], Y_a[Y_a<0] = 0, 0
                 #if smoothing is wanted every value gets replaced by the nr_days_for_avg mean
                 if data_gen_config.getboolean("do_smoothing"):
                     output = smooth_timeline(X_a, Y_a, group_sort[search_val], start, end, data_gen_config,invert_functions)
