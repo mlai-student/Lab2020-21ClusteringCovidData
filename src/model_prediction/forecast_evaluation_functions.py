@@ -18,11 +18,11 @@ def avg_perc_dist(forecast_snippet_list):
                 print(f"Snippet label: {snippet.label} Snippet forecast {snippet.forecast} and inverted forecast {inverted_forecast}")
 
 
-            if abs(round(inverted_forecast)-round(inverted_label))/round(inverted_label) > 10:
-                print(f"hier zu hoch: orignal: {snippet.label}, {snippet.forecast}")
-                print(f"inverted: {inverted_label}, {inverted_forecast}")
-                print(f"original label {snippet.original_label}")
-                print([round(snippet.invert_to_abs_cases(0.1*i),2) for i in range(10)])
+            # if abs(round(inverted_forecast)-round(inverted_label))/round(inverted_label) > 10:
+            #     print(f"hier zu hoch: orignal: {snippet.label}, {snippet.forecast}")
+            #     print(f"inverted: {inverted_label}, {inverted_forecast}")
+            #     print(f"original label {snippet.original_label}")
+            #     print([round(snippet.invert_to_abs_cases(0.1*i),2) for i in range(10)])
 
             avg_perc_dist_sum += abs(inverted_forecast-inverted_label)/inverted_label
             samples_count += 1

@@ -2,6 +2,7 @@ from src.data_representation.Examples import Examples
 # Throws AssertionError
 
 # Ŷ(t+h|t) = Y(t)
+from src.model_prediction.forecast_evaluation_functions import avg_perc_dist
 from src.model_prediction.lstm_apply import apply_lstm
 from src.model_training.clusters import GenericCluster
 
@@ -28,7 +29,6 @@ def lstm_forecast(ex: Examples):
     for snippet, pred in zip(ex.test_data, predictions):
         snippet.forecast = pred
 
-
 def forecast_LSTM_with_cluster(model: GenericCluster, examples: Examples):
     pred_cluster = [[] for _ in range(model.n_clusters)]
     cluster_ex = model.clusters
@@ -48,6 +48,9 @@ def forecast_LSTM_with_cluster(model: GenericCluster, examples: Examples):
             predictions = apply_lstm(cluster, test_ex)
 
             '''Transfering prediction to original snippet'''
+            # tmp_snippets = []
             for idx, pred in zip(rev_idx, predictions):
                 snippet = examples.test_data[idx]
                 snippet.forecast = pred
+            #     tmp_snippets.append(snippet)
+            # print(f"Abweichung: {avg_perc_dist(tmp_snippets) * 100}% in cluster {l}")
