@@ -1,23 +1,19 @@
-import matplotlib.pyplot as plt
-from matplotlib.pyplot import cm
-
-import numpy as np
 import logging
-from datetime import date
-import os
-from pathlib import Path
 import pickle
-import plotly.express as px
+from pathlib import Path
+
+import matplotlib.pyplot as plt
+import numpy as np
 import pandas as pd
-import tslearn.clustering as ts
+import plotly.express as px
 import sklearn.cluster as sk
 import sklearn_extra.cluster as sk_extra
+import tslearn.clustering as ts
+from matplotlib.pyplot import cm
+from sklearn.exceptions import NotFittedError
 from sklearn.metrics import calinski_harabasz_score, davies_bouldin_score
-from tslearn.preprocessing import TimeSeriesScalerMeanVariance
 
 from src.data_representation.Examples import Examples
-from tslearn.utils import to_time_series_dataset
-from sklearn.exceptions import NotFittedError
 
 
 class GenericCluster:

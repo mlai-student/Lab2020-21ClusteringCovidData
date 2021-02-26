@@ -20,7 +20,6 @@ class Forecaster_LSTM(nn.Module):
                 torch.zeros(1, bs, self.hidden_layer_size).to(device))
 
     def forward(self, input_seq):
-        bs = input_seq.shape[0]
-        lstm_out, _ = self.lstm(input_seq, self.hidden)
+        lstm_out, _ = self.lstm(input_seq.unsqueeze(2), self.hidden)
         predictions = self.linear(lstm_out[-1])
         return predictions.view(-1)

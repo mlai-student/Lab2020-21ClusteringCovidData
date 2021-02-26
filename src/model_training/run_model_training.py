@@ -1,11 +1,8 @@
 import json
 import logging
-import os
 
-from src.data_representation.Examples import load_Examples_from_file
 import src.model_training.clusters as cl
-import pandas as pd
-from collections import OrderedDict
+from src.data_representation.Examples import load_Examples_from_file
 
 
 def run_model_training_main(train_config, filename_example, filename_model):
