@@ -1,9 +1,6 @@
-import json
-import logging
-
+import json, logging
 import src.model_training.clusters as cl
 from src.data_representation.Examples import load_Examples_from_file
-
 
 def run_model_training_main(train_config, filename_example, filename_model):
     logging.debug("model_training.Run_model_training started main")
@@ -17,8 +14,7 @@ def run_model_training_main(train_config, filename_example, filename_model):
         n_clusters = json.loads(train_config["n_clusters"])
         example.standardize()
         model = c_model(n_clusters, metric=metric).fit(example)
-        model.save_model(train_config["data_path"], filename_model)
-
+        model.save_model(filename_model)
     except Exception as Argument:
         print(Argument)
         logging.error("Could not open file(s)")

@@ -1,6 +1,5 @@
 import numpy as np
 
-
 class smooth_invert:
     def __init__(self, prev_days_smooth, shift):
         self.prev_days_smooth = prev_days_smooth
@@ -10,7 +9,6 @@ class smooth_invert:
         if isinstance(self.prev_days_smooth, list):
              self.prev_days_smooth = self.prev_days_smooth[0]
         return max((x - self.prev_days_smooth) / self.shift, 0)
-
 
 # smooth a timeline X with a value Y which comes from a country timeline group and if from start to end
 # average with mean over data_gen_config[nr_days_for_avg] days

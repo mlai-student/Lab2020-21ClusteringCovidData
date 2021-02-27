@@ -51,16 +51,10 @@ class GenericCluster:
             title=f"Clustermethod: {self.name}, Number Clusters: {self.n_clusters}")
         return fig
 
-    def save_model(self, data_path, filename, save_data=False, examples=None):
+    def save_model(self, filename):
         try:
-            # PROJECT_PATH = os.getcwd().replace("notebooks", "") + "data/" + date.today().strftime("%b-%d-%Y")
-            Path("{}/{}".format(data_path, "/model/")).mkdir(parents=True, exist_ok=True)
-            # Path("{}/{}/{}".format(PROJECT_PATH, "/model/", filename)).mkdir(parents=True, exist_ok=True)
-            with open(data_path + "/model/" + filename, 'wb') as f:
+            with open(filename, 'wb') as f:
                 pickle.dump(self, f)
-            if save_data:
-                with open(data_path + "/model", "wb") as pkl_file:
-                    pickle.dump(examples, pkl_file)
         except Exception as Argument:
             logging.error("Saving model file failed with following message:")
             logging.error(str(Argument))

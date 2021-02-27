@@ -2,13 +2,12 @@ import logging
 
 import pandas as pd
 
-def get_ecdc_dataset(data_gen_config):
-    df = ""
+def get_ecdc_dataset(fix_cfg):
     try:
         #check whether the data should be imported from a file or a link:
-        if data_gen_config.getboolean("use_dataset_from_file"):
+        if fix_cfg["general_settings"].getboolean("use_dataset_from_file"):
             #expecting a pickle file:
-            df = pd.read_pickle(data_gen_config["dataset_filename"])
+            df = pd.read_pickle(fix_cfg["general_settings"]["dataset_filename"])
         else:
             df = pd.read_csv(ecdc_url)
         # save the date of interest as datetime object

@@ -1,4 +1,4 @@
-from copy import deepcopy as dp
+from copy import deepcopy as dc
 import numpy as np
 
 #distord each value by a gaussian and add it to snippets
@@ -8,7 +8,7 @@ def data_augmentation(snippets, data_gen_config):
     distortet_snippets = []
     perc_dist = float(data_gen_config["percent_varianz"])
     for snippet in snippets:
-        snippet_copy = dp(snippet)
+        snippet_copy = dc(snippet)
         distortion = np.random.normal(0,perc_dist, len(snippet_copy.time_series))
         snippet_copy.time_series += np.multiply(snippet_copy.time_series, distortion)
         snippet_copy.label += snippet_copy.label*np.random.normal(0,perc_dist)

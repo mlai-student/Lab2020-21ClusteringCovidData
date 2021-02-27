@@ -1,8 +1,5 @@
 #get additional info
-
 import json
-
-from src.data_generation.import_data import get_ecdc_dataset
 
 #get additional snippet info as described in config
 def get_additional_info(country_code, data_gen_config, data):
@@ -16,11 +13,6 @@ def get_additional_info(country_code, data_gen_config, data):
 
 
 def get_pop_data(country_code, cat, data_gen_config, data):
-    #load file and find country code
-    #TODO change if other source should be used
-    #TODO taka care about nan
-    #df = get_ecdc_dataset(data_gen_config)
-    #pop = (df[df["countriesAndTerritories"]==country_code]["popData2019"].iloc[0])
     pop = data["popData2019"].array[0]
     return (int) (pop)
 
