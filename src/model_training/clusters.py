@@ -1,7 +1,4 @@
-import logging
-import pickle
-from pathlib import Path
-
+import logging, pickle
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
@@ -9,12 +6,9 @@ import plotly.express as px
 import sklearn.cluster as sk
 import sklearn_extra.cluster as sk_extra
 import tslearn.clustering as ts
-from matplotlib.pyplot import cm
 from sklearn.exceptions import NotFittedError
 from sklearn.metrics import calinski_harabasz_score, davies_bouldin_score
-
 from src.data_representation.Examples import Examples
-
 
 class GenericCluster:
     def fit(self, X: Examples):
@@ -24,8 +18,7 @@ class GenericCluster:
 
     def predict(self, X_test: Examples):
         try:
-            pred = self.model.predict(self.preprocess(X_test, predict=True))
-            return pred
+            return self.model.predict(self.preprocess(X_test, predict=True))
         except NotFittedError as e:
             print(repr(e))
 
@@ -33,7 +26,7 @@ class GenericCluster:
         fig, axs = plt.subplots(self.n_clusters, figsize=(12, self.n_clusters * 3))
         fig.suptitle('Clusters')
         for i, cl in enumerate(self.clusters):
-            color = iter(cm.rainbow(np.linspace(0, 1, len(cl.train_data))))
+            color = iter(plt.cm.rainbow(np.linspace(0, 1, len(cl.train_data))))
             for ts in cl.train_data:
                 cl_color = next(color)
                 axs[i].plot(ts.time_series, c=cl_color)
@@ -123,12 +116,10 @@ class GenericCluster:
     def statistics(self, verbose=False):
         mu = sum([len(c.train_data) for c in self.clusters]) / self.n_clusters
         var = np.var(self.n_per_clusters)
-        max_n_cluster = max(self.n_per_clusters)
-        min_n_cluster = min(self.n_per_clusters)
+        max_n_cluster, min_n_cluster = max(self.n_per_clusters), min(self.n_per_clusters)
         if verbose:
             print(f"Statistic Report for: {self.name} with {self.n_clusters} different clusters")
-            print(
-                f"Expected Value: {mu} Variance: {var}\nBiggest Cluster: {max_n_cluster}, Smallest Cluster: {min_n_cluster}")
+            print(f"Expected Value: {mu} Variance: {var}\nBiggest Cluster: {max_n_cluster}, Smallest Cluster: {min_n_cluster}")
         return var, max_n_cluster, min_n_cluster
 
 
@@ -139,16 +130,12 @@ class KMedoids(GenericCluster):
             self.model = sk_extra.KMedoids(n_clusters=n_clusters, metric='euclidean', random_state=42)
         else:
             self.model = sk_extra.KMedoids(n_clusters=n_clusters, metric='precomputed', random_state=42)
-        self.metric = metric
-        self.n_clusters = n_clusters
+        self.metric, self.n_clusters = metric, n_clusters
 
     def preprocess(self, X: Examples, predict=False):
         if self.metric == "euclidean":
             X_train, X_test, y_train, y_test = X.split_examples()
-            if not predict:
-                return X_train
-            else:
-                return X_test
+            return X_test if predict else X_train
         return None
 
 
@@ -156,15 +143,11 @@ class KMeans(GenericCluster):
     def __init__(self, n_clusters, metric=None):
         self.name = "KMeans"
         self.model = sk.KMeans(n_clusters=n_clusters, random_state=42)
-        self.n_clusters = n_clusters
-        self.metric = "euclidean"
+        self.n_clusters, self.metric = n_clusters, "euclidean"
 
     def preprocess(self, X: Examples, predict=False):
         X_train, X_test, y_train, y_test = X.split_examples()
-        if not predict:
-            return X_train
-        else:
-            return X_test
+        return X_test if predict else X_train
 
 
 class DBSCAN(GenericCluster):
@@ -174,19 +157,14 @@ class DBSCAN(GenericCluster):
             self.model = sk.DBSCAN(eps=eps, metric='euclidean', min_samples=4)
         else:
             self.model = sk.DBSCAN(eps=eps, metric='precomputed')
-        self.metric = metric
-        self.n_clusters = eps
-        self.eps = eps
+        self.metric, self.n_clusters, self.eps = metric, eps, eps
 
     def preprocess(self, X, predict=False):
         if self.metric == "dtw":
             return X.to_distance_matrix(metric=self.metric)
         elif self.metric == "euclidean":
             X_train, X_test, y_train, y_test = X.split_examples()
-            if not predict:
-                return X_train
-            else:
-                return X_test
+            return X_test if predict else X_train
         return None
 
     def update_clusters(self):
@@ -197,30 +175,22 @@ class TS_KernelKMeans(GenericCluster):
     def __init__(self, n_clusters, metric=None):
         self.name = "TS_KernelKMeans"
         self.model = ts.KernelKMeans(n_clusters=n_clusters, kernel="gak", random_state=42)
-        self.n_clusters = n_clusters
-        self.metric = "dtw"
+        self.n_clusters, self.metric = n_clusters, "dtw"
 
     def preprocess(self, X: Examples, predict=False):
         X_train, X_test, y_train, y_test = X.to_ts_snippet()
-        if not predict:
-            return X_train
-        else:
-            return X_test
+        return X_test if predict else X_train
 
 
 class TS_KShape(GenericCluster):
     def __init__(self, n_clusters, metric=None):
         self.name = "TS_KShape"
         self.model = ts.KShape(n_clusters=n_clusters)
-        self.n_clusters = n_clusters
-        self.metric = "dtw"
+        self.n_clusters, self.metric = n_clusters, "dtw"
 
     def preprocess(self, X: Examples, predict=False):
         X_train, X_test, y_train, y_test = X.to_ts_snippet()
-        if not predict:
-            return X_train
-        else:
-            return X_test
+        return X_test if predict else X_train
 
 
 # Carefull, implements a
@@ -228,12 +198,8 @@ class TS_KMeans(GenericCluster):
     def __init__(self, n_clusters, metric):
         self.name = "TS_KMeans"
         self.model = ts.TimeSeriesKMeans(n_clusters=n_clusters, metric=metric)
-        self.n_clusters = n_clusters
-        self.metric = metric
+        self.n_clusters, self.metric = n_clusters, metric
 
     def preprocess(self, X: Examples, predict=False):
         X_train, X_test, y_train, y_test = X.to_ts_snippet()
-        if not predict:
-            return X_train
-        else:
-            return X_test
+        return X_test if predict else X_train

@@ -44,7 +44,7 @@ def run_data_generating_main(data_gen_config, fix_cfg, filename):
             data_augmentation(test_snippets, data_gen_config)
             data_augmentation(train_snippets, data_gen_config)
         snippet_examples.fill_from_snippets(train_snippets, test_snippets=test_snippets, data_gen_config=data_gen_config)
-        snippet_examples.standardize()
+    snippet_examples.standardize()
 
     snippet_examples.save_to_file(filename)
     logging.debug("data_generating.Run_data_generating finished main")

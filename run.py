@@ -60,7 +60,8 @@ def set_output_folder(main_config, fix_cfg,  path_to_cfg):
             shutil.rmtree(foldername)
 
     Path(foldername).mkdir(parents=True, exist_ok=True)
-    Path("{}/{}".format(foldername, "/models/")).mkdir(parents=True, exist_ok=True)
+    Path(foldername+"/models/").mkdir(parents=True, exist_ok=True)
+    Path(foldername+"/examples_sets/").mkdir(parents=True, exist_ok=True)
     print(f"data folder created under path: {foldername}")
     #copy the config file into the folder to track what has been done there
     shutil.copyfile(path_to_cfg, foldername+"used_config.ini")
@@ -90,7 +91,6 @@ def get_all_valid_cfg_combinations(main_config):
     comb_lists = []
     for i, comb in enumerate(config_comb):
         comb_list = list(comb)
-        #
         if comb_list[1] == "no":
             comb_list[2] = -1
         if comb_list[3] == "no":
@@ -145,7 +145,7 @@ def main(path_to_cfg):
     for i, comb in tqdm(enumerate(comb_lists)):
         logging.info("Run project with settings: " + str(comb))
         set_main_cfg_to_comb_data(main_config, comb)
-        filename_example = foldername + "example_set_"+str(i)
+        filename_example = foldername + "examples_sets/example_set_"+str(i)
         filename_model = foldername + "models/trained_model_"+str(i)
         run_project_w_unique_config(main_config, variable_config, filename_example, filename_model, foldername)
         add_entry_to_overview_csv(main_config, filename_example, filename_model, foldername)
