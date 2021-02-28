@@ -23,14 +23,14 @@ class GenericCluster:
             print(repr(e))
 
     def plot_cluster(self):
-        fig, axs = plt.subplots(self.n_clusters, figsize=(12, self.n_clusters * 3))
-        fig.suptitle('Clusters')
+        fig, axs = plt.subplots(nrows=self.n_clusters, figsize=(10, self.n_clusters * 2))
+        color = iter(plt.cm.rainbow(np.linspace(0, 1, len(self.clusters))))
         for i, cl in enumerate(self.clusters):
-            color = iter(plt.cm.rainbow(np.linspace(0, 1, len(cl.train_data))))
-            for ts in cl.train_data:
-                cl_color = next(color)
-                axs[i].plot(ts.time_series, c=cl_color)
+            cl_color = next(color)
+            for _ts in cl.train_data:
+                axs[i].plot(_ts.time_series, c=cl_color)
                 axs[i].set_title(str(len(cl.train_data)))
+        # fig.suptitle('Clusters')
         return plt
 
     def plot_geo_cluster(self):
