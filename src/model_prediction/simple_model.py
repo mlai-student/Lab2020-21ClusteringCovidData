@@ -1,7 +1,7 @@
 import torch.nn as nn
 import torch
 
-
+#implementation of a Neural net as simple altertanative to LSTM for cluster and general forecasting
 class Forecaster_Simple(nn.Module):
     def __init__(self, input_size=1, num_layers=1, layers=[100]):
         super(Forecaster_Simple, self).__init__()
@@ -27,4 +27,3 @@ class Forecaster_Simple(nn.Module):
             out = layer(out)
 
         return out.view(-1)
-

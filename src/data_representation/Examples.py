@@ -1,39 +1,28 @@
-import pickle
-import random
-import logging
-
+import pickle, logging, pandas
 from sklearn.decomposition import PCA
 from tslearn.utils import to_time_series_dataset
-import pandas as pd
 import numpy as np
 from tslearn.metrics import dtw
 from sklearn.metrics.pairwise import euclidean_distances, pairwise_distances
-
 from src.data_generation.get_additional_info import get_additional_information_distance_functions
 
 
 def load_Examples_from_file(filename):
     # read the pickle file
     pkl_file = open(filename, 'rb')
-    # unpickle the dataframe
     output = pickle.load(pkl_file)
-    # close file
     pkl_file.close()
     return output
 
 
 class Examples:
-
     def __init__(self):
-        self.train_data = []
-        self.test_data = []
+        self.train_data, self.test_data = [], []
         self.n_examples = 0
-
         self.additional_information_distance_functions = {}
 
     def fill_from_snippets(self, train_snippets, test_snippets=[], data_gen_config=None):
-        self.test_data = test_snippets
-        self.train_data = train_snippets
+        self.test_data, self.train_data = test_snippets, train_snippets
         self.n_examples = len(self.test_data) + len(self.train_data)
 
         if data_gen_config is not None:
@@ -64,14 +53,11 @@ class Examples:
         return X_train, X_test, y_train, y_test
 
     def reset_examples(self):
-        self.train_data = []
-        self.test_data = []
+        self.train_data, self.test_data = [], []
 
     def make_dataframe(self, use_test=False):
-        ts_list = []
-        country_list = []
-        continent_list = []
-        country_id_list = []
+        ts_list, country_list = [],[]
+        continent_list, country_id_list = [], []
         for snippet in self.train_data:
             length = snippet.time_series.size
             ts_list.extend(snippet.time_series)
@@ -82,9 +68,8 @@ class Examples:
                       'countriesAndTerritories': country_list,
                       'countryterritoryCode': country_id_list,
                       'continentExp': continent_list}
-        df = pd.DataFrame(cases_dict,
+        return = pandas.DataFrame(cases_dict,
                           columns=['cases', 'countriesAndTerritories', 'countryterritoryCode', 'continentExp'])
-        return df
 
     def divide_by_label(self, n_cluster, labels):
         cluster = [Examples() for _ in range(n_cluster)]
