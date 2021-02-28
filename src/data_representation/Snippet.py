@@ -1,6 +1,5 @@
 import numpy as np
 
-
 class standardize_invert:
     def __init__(self,multiplicator):
         self.multiplicator = multiplicator
@@ -15,9 +14,7 @@ class Snippet:
             self.time_series = np.flipud(self.time_series)
         self.label = label
         self.forecast = None
-        self.country_id = country_id
-        self.country = country
-        self.continent = continent
+        self.country_id, self.country, self.continent = country_id, country, continent
         #dict to store additional info for snippet -> for each label (temp etc) should be an corresponding distance function saved in the corresproding Examples file
         self.additional_info = additional_info
         self.scaler = 1
