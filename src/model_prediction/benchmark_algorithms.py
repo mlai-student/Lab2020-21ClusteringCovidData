@@ -47,5 +47,5 @@ def forecast_LSTM_with_cluster(model: GenericCluster, examples: Examples):
             for idx, pred in zip(rev_idx, predictions):
                 snippet = examples.test_data[idx]
                 snippet.forecast = pred
-                 tmp_snippets.append(snippet)
+                tmp_snippets.append(snippet)
             print(f"Abweichung: {avg_perc_dist(tmp_snippets) * 100}% in cluster {l}")

@@ -3,12 +3,35 @@ import numpy as np
 import random, logging
 from tqdm import tqdm
 from copy import deepcopy as dc
+import datetime
 from src.data_representation.Snippet import Snippet
 from src.data_representation.Examples import Examples
 from src.data_generation.smoothing import smooth_timeline
 from src.data_generation.augmentation import  data_augmentation
 from src.data_generation.import_data import get_ecdc_dataset
 from src.data_generation.get_additional_info import get_additional_info
+
+#add missing values inside a TimeSeries
+def add_missing_values_in_between(df):
+    co_grp = df.groupby("countriesAndTerritories")
+    new_rows = []
+    for country in tqdm(co_grp):
+        min_date, max_date = country[1]["dateRep"].min(), country[1]["dateRep"].max()
+        tmp_date = min_date
+        while (max_date-tmp_date).days != 0:
+            if not tmp_date in list(country[1]["dateRep"].values):
+                #add a zero entry
+                new_row = dc(country[1].iloc[0])
+                new_row["dateRep"] = tmp_date
+                new_row["day"], new_row["month"], new_row["year"] = tmp_date.day, tmp_date.month, tmp_date.year
+                new_row["cases"], new_row["deaths"] = 0,0
+                new_rows.append(new_row)
+            tmp_date +=datetime.timedelta(days=1)
+    new_ecdc_df = pd.DataFrame(new_rows, columns=df.columns)
+    df = pd.concat([df, new_ecdc_df])
+    #sort the new entries in the correct order
+    df = df.sort_values(by ='dateRep')
+
 
 # start the data generating process with a configuration set given
 def run_data_generating_main(data_gen_config, fix_cfg, filename):
@@ -24,6 +47,9 @@ def run_data_generating_main(data_gen_config, fix_cfg, filename):
     df.fillna(0, inplace=True)
     if fix_cfg["general_settings"].getboolean("replace_negative_values_w_zero"):
         df["cases"] = df["cases"].clip(lower=0)
+    if fix_cfg["general_settings"].getboolean("add_missing_values_inside_ts"):
+        add_missing_values_in_between(df)
+
     save_ecdc_data_frame(df, data_gen_config)
 
     #check whether snippets or complete clusters are wanted and fill the snippet_examples respectively

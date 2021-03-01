@@ -68,7 +68,7 @@ class Examples:
                       'countriesAndTerritories': country_list,
                       'countryterritoryCode': country_id_list,
                       'continentExp': continent_list}
-        return = pandas.DataFrame(cases_dict,
+        return pandas.DataFrame(cases_dict,
                           columns=['cases', 'countriesAndTerritories', 'countryterritoryCode', 'continentExp'])
 
     def divide_by_label(self, n_cluster, labels):
