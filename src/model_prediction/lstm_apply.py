@@ -86,7 +86,7 @@ def apply_lstm(train_ex: Examples, test_ex: Examples):
             best_forecaster = copy.deepcopy(forecaster)
 
         if epoch % 100 == 0:
-            print("Epoch: %d, loss: %1.5f" % (epoch, train_loss))
+            print("Epoch: %d, train loss: %1.5f, validation loss: %1.5f" % (epoch, train_loss, val_loss))
 
     print("Start evaluating forecaster")
     with torch.no_grad():
