@@ -33,14 +33,14 @@ from tqdm import tqdm
 #
 # For the next step you should have at least one example file in a data folder. Please change the foldername corresponding to the date when you have run the script.
 
-DATA_GEN_FOLDER_NAME = "Feb-26-2021"
+DATA_GEN_FOLDER_NAME = "Mar-02-2021"
 DATASET_PATH = PROJECT_PATH + "data/" + DATA_GEN_FOLDER_NAME + "/"
 OVERVIEW_DATASET_PATH = DATASET_PATH + "overview.csv"
 FORECAST_DATASET_PATH = DATASET_PATH + "forecasting_results.csv"
 
 # ### Overview file
 #
-# We first look at the overview file that was created during the run through the framework
+# We first look at the overview file that was created during a run through the framework
 
 import pandas as pd
 
@@ -60,12 +60,21 @@ model_df.head(5)
 import pickle
 
 example_no = 0
-filename = model_df['main_flow_settings generated_model_path'][example_no]
-with open(DATASET_PATH + "model/" + filename, 'rb') as f:
+filename = model_df['data_generating_settings generated_model_path'][example_no]
+with open(PROJECT_PATH + filename, 'rb') as f:
         model = pickle.load(f)
 plt = model.plot_cluster()
 plt.tight_layout()
 plt.show()
+
+ex = load_Examples_from_file(PROJECT_PATH + model_df['data_generating_settings generated_data_path'][example_no])
+ratio = ex.test_data.shape[0]
+pred_label = model.predict(ex, sample_weight=[i/ratio for i in range(1, ratio+1)])
+plt.rcParams["figure.figsize"] = (10,2)
+for label, sn in zip(pred_label, ex.test_data[:10]):
+    print("predicted label: ", label)
+    plt.plot(sn.time_series)
+    plt.show()
 
 # Next, we can also look at how the clusters are distributed onto the world map.\
 # **Note**: This only works if you have chosen to cluster complete time-series.
@@ -119,7 +128,7 @@ for snippet in snippets:
     if inverted_label >= 1000:
         thousend_perc_list.append(perc_dist)
     samples_count += 1
-    
+
 
 all_df = pd.DataFrame(perc_list, columns=["All Snippets"])
 h_df = pd.DataFrame(hundret_perc_list, columns=["Label >= 100"])

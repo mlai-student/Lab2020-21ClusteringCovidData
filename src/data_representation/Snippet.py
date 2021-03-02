@@ -1,26 +1,29 @@
 import numpy as np
 
+
 class standardize_invert:
-    def __init__(self,multiplicator):
+    def __init__(self, multiplicator):
         self.multiplicator = multiplicator
-    def invert(self,x):
-        return x*self.multiplicator
+
+    def invert(self, x):
+        return x * self.multiplicator
+
 
 class Snippet:
-    def __init__(self, ts: np.array, label, original_label=-1, country_id = None, country=None,
-                continent=None, flip_order=False, additional_info={}, invert_label_to_nr_cases=[]):
+    def __init__(self, ts: np.array, label, original_label=-1, country_id=None, country=None,
+                 continent=None, flip_order=False, additional_info={}, invert_label_to_nr_cases=[]):
         self.time_series = ts
         if flip_order:
             self.time_series = np.flipud(self.time_series)
         self.label = label
         self.forecast = None
         self.country_id, self.country, self.continent = country_id, country, continent
-        #dict to store additional info for snippet -> for each label (temp etc) should be an corresponding distance function saved in the corresproding Examples file
+        # dict to store additional info for snippet -> for each label (temp etc) should be an corresponding distance function saved in the corresproding Examples file
         self.additional_info = additional_info
         self.scaler = 1
         self.original_label = original_label
 
-        #list of class objects that have to be applied when inverting a forecast to abs case number
+        # list of class objects that have to be applied when inverting a forecast to abs case number
         self.invert_label_to_nr_cases = invert_label_to_nr_cases
 
     def invert_to_abs_cases(self, x):
@@ -32,7 +35,7 @@ class Snippet:
         if only_ts:
             return self.time_series
         else:
-            features = list(filter(lambda x: x is not None,[self.temperature, self.country, self.continent]))
+            features = list(filter(lambda x: x is not None, [self.temperature, self.country, self.continent]))
             return np.append(self.time_series, features)
 
     def standardize(self):
@@ -44,4 +47,4 @@ class Snippet:
                 self.label /= self.scaler
             if self.forecast is not None:
                 self.forecast /= self.scaler
-            self.invert_label_to_nr_cases.insert(0,standardize_invert(self.scaler))
+            self.invert_label_to_nr_cases.insert(0, standardize_invert(self.scaler))

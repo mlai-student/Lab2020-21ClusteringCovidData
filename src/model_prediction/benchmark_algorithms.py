@@ -4,15 +4,18 @@ from src.model_prediction.lstm_apply import apply_lstm
 from src.model_training.clusters import GenericCluster
 import logging
 
+
 def naive_forecast(time_series):
     assert len(time_series) > 0
     return time_series[-1]
+
 
 # Ŷ(t+h|t) = Y(t+h-T)
 # T:= Period of seasonality
 def seasonal_naive_forecast(time_series, T=7):
     assert len(time_series) >= T, "Timeseries too short for seasonal naive_forecast"
     return time_series[-T]
+
 
 def lstm_forecast(ex: Examples):
     train_ex = Examples()
@@ -24,11 +27,11 @@ def lstm_forecast(ex: Examples):
     for snippet, pred in zip(ex.test_data, predictions):
         snippet.forecast = pred
 
-def forecast_LSTM_with_cluster(model: GenericCluster, examples: Examples):
+
+def lstm_forecast_cluster(model: GenericCluster, examples: Examples):
     pred_cluster = [[] for _ in range(model.n_clusters)]
     cluster_ex = model.clusters
     pred_label = model.predict(examples)
-    reverse_pred = []
     for idx, (label, snippet) in enumerate(zip(pred_label, examples.test_data)):
         pred_cluster[label].append([snippet, idx])
     for l, cluster in enumerate(cluster_ex):
@@ -40,12 +43,14 @@ def forecast_LSTM_with_cluster(model: GenericCluster, examples: Examples):
 
             print(f"\n\nStarting LSTM Training with {len(cluster.train_data)} training examples and "
                   f"{len(pred_cluster[l])} examples to predict\n")
-            predictions = apply_lstm(cluster, test_ex)
+            predictions, targets = apply_lstm(cluster, test_ex)
 
             '''Transfering prediction to original snippet'''
             tmp_snippets = []
-            for idx, pred in zip(rev_idx, predictions):
+            for idx, pred, y in zip(rev_idx, predictions, targets):
                 snippet = examples.test_data[idx]
+                # if y != snippet.label:
+                #     print(f"label : {snippet.label} and lstm label: {y} and forecast {pred}")
                 snippet.forecast = pred
-                 tmp_snippets.append(snippet)
+                tmp_snippets.append(snippet)
             print(f"Abweichung: {avg_perc_dist(tmp_snippets) * 100}% in cluster {l}")

@@ -11,7 +11,8 @@ def forecast_a_snippet_list(forecasting_function, snippet_list):
         snippet.forecast = forecasting_function(snippet.time_series)
 
 
-def run_and_save_forecast_evaluation(main_config, dataset_examples, data_filename, forecasting_function_name):
+def run_and_save_forecast_evaluation(main_config, dataset_examples, data_filename, forecasting_function_name,
+                                     data_foldername):
     forecast_evaluation_function_name = main_config["model_prediction_settings"]["forecast_evaluation_function"]
     # Changed datset_examples.train_data to test_data
     forecast_evaluation = getattr(forecast_evaluation_functions, forecast_evaluation_function_name)(
@@ -37,19 +38,20 @@ def run_and_save_forecast_evaluation(main_config, dataset_examples, data_filenam
         model_df = pd.Series(cfg_settings_dict).to_frame().T
     model_df.to_csv(csv_filename, index=False)
 
+
 def forecast_example_set(main_config):
     # get dataset -> Examples to forecast on (maybe also a trained model depending on forecasting method)
     # Supposing that path is saved under "generated_data_path" in main_config
-    data_filename =  main_config["data_generating_settings"]["generated_data_path"]
-    data_foldername= main_config["data_generating_settings"]["generated_folder_path"]
-    model_filename=  main_config["data_generating_settings"]["generated_model_path"]
+    data_filename = main_config["data_generating_settings"]["generated_data_path"]
+    data_foldername = main_config["data_generating_settings"]["generated_folder_path"]
+    model_filename = main_config["data_generating_settings"]["generated_model_path"]
     # load generatet dataset
     dataset_examples = load_Examples_from_file(data_filename)
     # run specified forecast, store the results as Examples file and compute precision of forecast
     forecasting_function_name = main_config["model_prediction_settings"]["forecast_function"]
     forecasting_function = getattr(forecast_functions, forecasting_function_name)
 
-    if forecasting_function_name == "forecast_LSTM_with_cluster":
+    if forecasting_function_name == "lstm_forecast_cluster":
         with open(model_filename, 'rb') as f:
             model = pickle.load(f)
         forecasting_function(model, dataset_examples)
@@ -57,8 +59,10 @@ def forecast_example_set(main_config):
         forecasting_function(dataset_examples)
     else:
         forecast_a_snippet_list(forecasting_function, dataset_examples.test_data)
-    #now in dataset_examples in each snippet the "forecast" value is set.
-    run_and_save_forecast_evaluation()
+    # now in dataset_examples in each snippet the "forecast" value is set.
+    run_and_save_forecast_evaluation(main_config, dataset_examples, data_filename, forecasting_function_name,
+                                     data_foldername)
+
 
 def run_model_prediction_main(main_config):
     logging.debug("model_prediction.Run_model_prediction started main")

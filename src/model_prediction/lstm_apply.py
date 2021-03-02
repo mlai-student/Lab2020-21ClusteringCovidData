@@ -11,9 +11,9 @@ from src.model_prediction.lstm_model import Forecaster_LSTM
 def apply_lstm(train_ex: Examples, test_ex: Examples):
     # Define hyperparameters
     tmp_snippet = train_ex.train_data[0]
-    input_size, num_layers = 1 ,1
-    epochs = 500
-    batch_size = 20
+    input_size, num_layers = 1, 1
+    epochs = 201
+    batch_size = 10
     learning_rate = 1e-4
     use_lstm = True
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
@@ -24,8 +24,7 @@ def apply_lstm(train_ex: Examples, test_ex: Examples):
     best_forecaster = copy.deepcopy(forecaster)
 
     X, _, y, _ = train_ex.split_examples()
-    split = int(len(X) * .9)
-    #TODO shuffeln ?
+    split = int(len(X) * .8)
     X_train, X_val, y_train, y_val = X[:split], X[split:], y[:split], y[split:]
     X_test, _, y_test, _ = test_ex.split_examples()
     t_X_train, t_y_train = torch.Tensor(X_train), torch.Tensor(y_train)
@@ -39,7 +38,7 @@ def apply_lstm(train_ex: Examples, test_ex: Examples):
     val_dataloader = DataLoader(val_dataset, batch_size, shuffle=True)
 
     test_dataset = TensorDataset(t_X_test, t_y_test)
-    test_dataloader = DataLoader(test_dataset, X_test.shape[0], shuffle=False)
+    test_dataloader = DataLoader(test_dataset, batch_size=1, shuffle=False)
 
     optimizer = optim.Adam(forecaster.parameters(), lr=learning_rate)
     criterion = nn.MSELoss()
@@ -93,7 +92,7 @@ def apply_lstm(train_ex: Examples, test_ex: Examples):
         predictions, targets, test_loss = [], [], 0
         for test_batch in test_dataloader:
             X_batch, y_batch = test_batch
-            targets.append(y_batch)
+            targets.extend(y_batch)
             X_batch, y_batch = X_batch.to(device), y_batch.to(device)
 
             if use_lstm:
@@ -104,4 +103,4 @@ def apply_lstm(train_ex: Examples, test_ex: Examples):
             test_loss += loss.item()
 
         print("Total test loss accumulates to: ", test_loss)
-        return predictions
+        return predictions, targets

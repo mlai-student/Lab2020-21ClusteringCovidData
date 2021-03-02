@@ -103,6 +103,8 @@ def get_all_valid_cfg_combinations(main_config):
             comb_list[4] = -1
         if is_a_valid_comb_list(comb) and comb_list not in comb_lists:
             comb_lists.append(comb_list)
+
+    print(len(comb_lists))
     return comb_lists
 
 
