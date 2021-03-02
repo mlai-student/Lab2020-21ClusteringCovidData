@@ -1,5 +1,4 @@
 import logging
-
 import pandas as pd
 
 def get_ecdc_dataset(fix_cfg):
@@ -11,6 +10,15 @@ def get_ecdc_dataset(fix_cfg):
         else:
             df = pd.read_csv(ecdc_url)
         # save the date of interest as datetime object
+        df["dateRep"] = pd.to_datetime(df["dateRep"], format='%d/%m/%Y')
+    except Exception as Argument:
+        logging.error("getting ecdc dataset via url failed with message:")
+        logging.error(str(Argument))
+    return df
+
+def get_standard_ecdc_dataset():
+    try:
+        df = pd.read_pickle("ecdc_df")
         df["dateRep"] = pd.to_datetime(df["dateRep"], format='%d/%m/%Y')
     except Exception as Argument:
         logging.error("getting ecdc dataset via url failed with message:")

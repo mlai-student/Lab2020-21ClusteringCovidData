@@ -11,8 +11,7 @@ def forecast_a_snippet_list(forecasting_function, snippet_list):
         snippet.forecast = forecasting_function(snippet.time_series)
 
 
-def run_and_save_forecast_evaluation(main_config, dataset_examples, data_filename, forecasting_function_name,
-                                     data_foldername):
+def run_and_save_forecast_evaluation(main_config, dataset_examples, data_filename, data_foldername, forecasting_function_name):
     forecast_evaluation_function_name = main_config["model_prediction_settings"]["forecast_evaluation_function"]
     # Changed datset_examples.train_data to test_data
     forecast_evaluation = getattr(forecast_evaluation_functions, forecast_evaluation_function_name)(
@@ -59,10 +58,8 @@ def forecast_example_set(main_config):
         forecasting_function(dataset_examples)
     else:
         forecast_a_snippet_list(forecasting_function, dataset_examples.test_data)
-    # now in dataset_examples in each snippet the "forecast" value is set.
-    run_and_save_forecast_evaluation(main_config, dataset_examples, data_filename, forecasting_function_name,
-                                     data_foldername)
-
+    #now in dataset_examples in each snippet the "forecast" value is set.
+    run_and_save_forecast_evaluation(main_config, dataset_examples, data_filename, data_foldername, forecasting_function_name)
 
 def run_model_prediction_main(main_config):
     logging.debug("model_prediction.Run_model_prediction started main")
