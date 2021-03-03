@@ -15,6 +15,7 @@
 
 # %% [markdown]
 # # Packages and paths and read data
+# put the used data file in the notebooks folder
 
 # %%
 import os,sys
@@ -36,7 +37,6 @@ ecdc_df = get_standard_ecdc_dataset()
 
 # %%
 #general overview over the given dataset:
-
 print(f"The dataset contains: {ecdc_df.shape[0]} number of entries")
 
 cols = ecdc_df.columns
@@ -96,6 +96,7 @@ stats_df.plot(x = 'cases', y = ['cdf'], grid = True)
 plt.xscale("log")
 plt.ylabel("Probability")
 plt.title("Cummulative Distribution Function of the cases attribute")
+plt.savefig('cases_column_cdf.png', dpi = 300)
 plt.show()
 
 
@@ -112,6 +113,7 @@ country_nr_df.hist(bins=15)
 plt.xlabel("Nr datapoints per country in bins")
 plt.ylabel("Nr countries per bin")
 plt.title("Distribution of Datapoints per country")
+plt.savefig('case_reports_hist.png', dpi = 300)
 plt.show()
 
 # %%
@@ -149,11 +151,16 @@ print("\n Since there are many countries where the time series contain structure
 print("Furthermore there is no country that reported more than one datapoint for one day")
 
 #check if there is a country having more than one entry per day -> NONE good!
-for comp in co_grp:
-    days = comp[1].groupby("dateRep")
-    for day in days:
-        if day[1].shape[0] != 1:
-            print(comp[0] + " at: " + day[0])
-print("DONE")
+def check_double_cases_entries(df):
+    co_grp = df.groupby("countriesAndTerritories")
+    for comp in co_grp:
+        days = comp[1].groupby("dateRep")
+        for day in days:
+            if day[1].shape[0] != 1:
+                print(comp[0] + " at: " + day[0])
+    print("DONE")
+
+
+check_double_cases_entries(ecdc_df)
 
 
