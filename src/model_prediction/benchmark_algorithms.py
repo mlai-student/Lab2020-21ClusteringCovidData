@@ -19,12 +19,12 @@ def seasonal_naive_forecast(time_series, T=7):
 
 def lstm_forecast(ex: Examples):
     train_ex = Examples()
-    train_ex.fill_from_snippets(ex.train_data)
+    train_ex.fill_from_snippets(train_snippets=ex.train_data)
     test_ex = Examples()
-    test_ex.fill_from_snippets(ex.test_data)
-    predictions = apply_lstm(train_ex, test_ex)
+    test_ex.fill_from_snippets(train_snippets=ex.test_data)
+    predictions, targets = apply_lstm(train_ex, test_ex)
     '''Transfering prediction to original snippet'''
-    for snippet, pred in zip(ex.test_data, predictions):
+    for snippet, pred, target in zip(ex.test_data, predictions, targets):
         snippet.forecast = pred
 
 
