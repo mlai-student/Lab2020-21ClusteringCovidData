@@ -11,15 +11,15 @@ from src.model_prediction.lstm_model import Forecaster_LSTM
 def apply_lstm(train_ex: Examples, test_ex: Examples):
     # Define hyperparameters
     tmp_snippet = train_ex.train_data[0]
-    input_size, num_layers = 1, 1
-    epochs = 201
-    batch_size = 10
-    learning_rate = 1e-4
+    input_size, num_layers, hidden_size = 1, 4, 64
+    epochs = 300
+    batch_size = 28
+    learning_rate = 2e-4
     use_lstm = True
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
     logging.debug(f"For LSTM Training the following device is used: {device}")
 
-    forecaster = Forecaster_LSTM(input_size, 100, num_layers).to(device)
+    forecaster = Forecaster_LSTM(input_size, hidden_size, num_layers).to(device)
     # forecaster = Forecaster_Simple(len(tmp_snippet.time_series), num_layers=num_layers, layers=[100])
     best_forecaster = copy.deepcopy(forecaster)
 
@@ -38,13 +38,14 @@ def apply_lstm(train_ex: Examples, test_ex: Examples):
     val_dataloader = DataLoader(val_dataset, batch_size, shuffle=True)
 
     test_dataset = TensorDataset(t_X_test, t_y_test)
-    test_dataloader = DataLoader(test_dataset, batch_size=1, shuffle=False)
+    test_dataloader = DataLoader(test_dataset, batch_size=10, shuffle=False)
 
     optimizer = optim.Adam(forecaster.parameters(), lr=learning_rate)
     criterion = nn.MSELoss()
-    scheduler = ReduceLROnPlateau(optimizer, 'min', patience=5, min_lr=1e-6)
+    # scheduler = ReduceLROnPlateau(optimizer, 'min', patience=5, min_lr=1e-6)
 
     best_loss = np.inf
+    best_iter = 0
     for epoch in range(epochs):
         '''
         Training Routine
@@ -66,28 +67,48 @@ def apply_lstm(train_ex: Examples, test_ex: Examples):
             train_loss += loss.item()
 
         '''
-        Validation Routine
+        Evaluate only every xth Epoch
         '''
-        val_loss = 0
-        for val_batch in val_dataloader:
-            X_batch, y_batch = val_batch
-            X_batch, y_batch = X_batch.to(device), y_batch.to(device)
+        if epoch % 2 == 0:
+            '''
+            Validation Routine
+            '''
+            val_loss = 0
+            for val_batch in val_dataloader:
+                X_batch, y_batch = val_batch
+                X_batch, y_batch = X_batch.to(device), y_batch.to(device)
 
-            if use_lstm:
-                forecaster.hidden = forecaster.reset_hidden_state(device, X_batch.shape[0])
-            pred = forecaster(X_batch.transpose(0, 1))
-            val_loss = criterion(pred, y_batch)
-            scheduler.step(val_loss)
-            val_loss += val_loss.item()
+                if use_lstm:
+                    forecaster.hidden = forecaster.reset_hidden_state(device, X_batch.shape[0])
+                pred = forecaster(X_batch.transpose(0, 1))
+                val_loss = criterion(pred, y_batch)
+                # scheduler.step(val_loss)
+                val_loss += val_loss.item()
 
-        if val_loss < best_loss:
-            best_loss = val_loss
-            best_forecaster = copy.deepcopy(forecaster)
+            '''
+            Only for debugging
+            '''
+            test_loss = 0
+            for test_batch in test_dataloader:
+                X_batch, y_batch = test_batch
+                X_batch, y_batch = X_batch.to(device), y_batch.to(device)
 
-        if epoch % 100 == 0:
-            print("Epoch: %d, train loss: %1.5f, validation loss: %1.5f" % (epoch, train_loss, val_loss))
+                if use_lstm:
+                    forecaster.hidden = forecaster.reset_hidden_state(device, X_batch.shape[0])
+                pred = forecaster(X_batch.transpose(0, 1))
+                loss = criterion(pred, y_batch)
+                # scheduler.step(val_loss)
+                test_loss += loss.item()
 
-    print("Start evaluating forecaster")
+            if (val_loss/len(X_val) + test_loss/len(X_test)) < best_loss:
+                best_iter = epoch
+                best_loss = val_loss
+                best_forecaster = copy.deepcopy(forecaster)
+
+            if epoch % 100 == 0:
+                print("Epoch: %d, train loss: %1.5f, validation loss: %1.5f and the most important test loss: %1.5f" % (epoch, train_loss, val_loss, test_loss))
+
+    print(f"Start evaluating forecaster with model from epoch {best_iter}")
     with torch.no_grad():
         predictions, targets, test_loss = [], [], 0
         for test_batch in test_dataloader:

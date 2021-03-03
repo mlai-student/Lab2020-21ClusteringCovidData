@@ -54,8 +54,12 @@ def set_logging_settings(log_filename):
 
 # create new folder (if wanted)
 def set_output_folder(main_config, fix_cfg, path_to_cfg):
-    today = date.today().strftime("%b-%d-%Y")
-    foldername = "data/{}/".format(today)
+    auto_generate = main_config['data_generating_settings'].getboolean('generate_automatic')
+    if auto_generate:
+        folder = date.today().strftime("%b-%d-%Y")
+    else:
+        folder = main_config['data_generating_settings']['generated_folder_name']
+    foldername = "data/{}/".format(folder)
     # check if folder already exists and throw warning:
     folder_already_exists = os.path.isdir(foldername)
     if folder_already_exists:

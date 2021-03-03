@@ -7,6 +7,7 @@ class Forecaster_LSTM(nn.Module):
         super(Forecaster_LSTM, self).__init__()
         self.input_size = input_size
         self.hidden_layer_size = hidden_layer_size
+        self.num_layers = num_layers
 
         self.lstm = nn.LSTM(
             input_size=input_size,
@@ -16,8 +17,8 @@ class Forecaster_LSTM(nn.Module):
         self.linear = nn.Linear(in_features=hidden_layer_size, out_features=1)
 
     def reset_hidden_state(self, device, bs):
-        return (torch.zeros(1, bs, self.hidden_layer_size).to(device),
-                torch.zeros(1, bs, self.hidden_layer_size).to(device))
+        return (torch.zeros(self.num_layers, bs, self.hidden_layer_size).to(device),
+                torch.zeros(self.num_layers, bs, self.hidden_layer_size).to(device))
 
     def forward(self, input_seq):
         lstm_out, _ = self.lstm(input_seq.unsqueeze(2), self.hidden)

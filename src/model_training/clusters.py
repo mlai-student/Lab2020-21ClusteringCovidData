@@ -20,8 +20,7 @@ class GenericCluster:
     def predict(self, X_test: Examples):
         try:
             X_test = self.preprocess(X_test, predict=True)
-            ratio = X_test.shape[0]
-            return self.model.predict(X_test, sample_weight=[i/ratio for i in range(1, ratio+1)])
+            return self.model.predict(X_test)
         except NotFittedError as e:
             print(repr(e))
 
