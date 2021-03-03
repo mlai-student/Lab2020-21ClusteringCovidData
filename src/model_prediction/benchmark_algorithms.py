@@ -3,6 +3,7 @@ from src.model_prediction.forecast_evaluation_functions import avg_perc_dist
 from src.model_prediction.lstm_apply import apply_lstm
 from src.model_training.clusters import GenericCluster
 import logging
+import numpy as np
 
 
 def naive_forecast(time_series):
@@ -54,3 +55,16 @@ def lstm_forecast_cluster(model: GenericCluster, examples: Examples):
                 snippet.forecast = pred
                 tmp_snippets.append(snippet)
             print(f"Abweichung: {avg_perc_dist(tmp_snippets) * 100}% in cluster {l}")
+
+#use the cluster average label to forecast a test snippet
+def cluster_avg_forecast(model: GenericCluster, examples: Examples):
+    pred_cluster = [[] for _ in range(model.n_clusters)]
+    cluster_ex, pred_label = model.clusters, model.predict(examples)
+
+    for (label, snippet) in zip(pred_label, examples.test_data):
+        pred_cluster[label].append(snippet)
+    for l, cluster in enumerate(cluster_ex):
+        #get average cluster label
+        prediction = np.mean([snippet.label for snippet in cluster.train_data])
+        for snippet in pred_cluster[l]:
+            snippet.forecast = prediction
