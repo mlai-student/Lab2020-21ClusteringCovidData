@@ -1,4 +1,4 @@
-import logging, pickle
+import logging, pickle, os
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
@@ -9,6 +9,7 @@ import tslearn.clustering as ts
 from sklearn.exceptions import NotFittedError
 from sklearn.metrics import calinski_harabasz_score, davies_bouldin_score
 from src.data_representation.Examples import Examples
+from src.data_representation.config_to_dict import get_config_dict
 
 class GenericCluster:
     def fit(self, X: Examples):
@@ -45,13 +46,34 @@ class GenericCluster:
             title=f"Clustermethod: {self.name}, Number Clusters: {self.n_clusters}")
         return fig
 
-    def save_model(self, filename):
+    def save_model_and_update_overview(self, main_config, filename):
         try:
             with open(filename, 'wb') as f:
                 pickle.dump(self, f)
         except Exception as Argument:
             logging.error("Saving model file failed with following message:")
             logging.error(str(Argument))
+        #updating main cfg file:
+        self.add_model_entry_to_overview_csv(main_config, filename)
+
+    def add_model_entry_to_overview_csv(self, main_config, filename_model):
+        cfg_settings_dict = get_config_dict(main_config)
+        cfg_settings_dict["filename_model"] = filename_model
+        #add cluster scores to the output table
+        cfg_settings_dict["Silhouette Score"] = self.silhouette(metric = main_config["model_training_settings"]["metric"])
+        cfg_settings_dict["Calinski Score"] = self.calinski()
+        cfg_settings_dict["Davies Score"] = self.davies()
+        cfg_settings_dict["Cluster size variance"],_,_ = self.statistics()
+
+        foldername = main_config["data_generating_settings"]["generated_folder_path"]
+        csv_filename = foldername + "model_overview.csv"
+        if os.path.isfile(csv_filename):
+            df = pd.read_csv(csv_filename)
+            pd_dict = pd.Series(cfg_settings_dict).to_frame().T
+            model_df = df.append(pd_dict.iloc[0])
+        else:
+            model_df = pd.Series(cfg_settings_dict).to_frame().T
+        model_df.to_csv(csv_filename, index=False)
 
     def preprocess(self, X: Examples, predict=False):
         pass

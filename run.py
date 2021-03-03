@@ -16,15 +16,17 @@ def run_project_w_unique_config(main_cfg, fix_cfg, filename_example, filename_mo
     main_cfg["data_generating_settings"]["generated_folder_path"] = foldername
     try:
         if fix_cfg["main_flow_settings"].getboolean("Run_data_generation"):
+            main_cfg["data_generating_settings"]["generated_data_path"] = filename_example
             run_data_generating_main(main_cfg["data_generating_settings"], fix_cfg, filename_example)
-        main_cfg["data_generating_settings"]["generated_data_path"] = filename_example
+
     except Exception as Argument:
         logging.error("Data generation process failed with the following error message:")
         logging.error(str(Argument))
     try:
         if fix_cfg["main_flow_settings"].getboolean("Run_model_training"):
-            run_model_training_main(main_cfg["model_training_settings"], filename_example, filename_model)
             main_cfg["data_generating_settings"]["generated_model_path"] = filename_model
+            run_model_training_main(main_cfg, filename_example, filename_model)
+
     except Exception as Argument:
         logging.error("Model training process failed with the following error message:")
         logging.error(str(Argument))
@@ -107,8 +109,6 @@ def get_all_valid_cfg_combinations(main_config):
             comb_list[4] = -1
         if is_a_valid_comb_list(comb) and comb_list not in comb_lists:
             comb_lists.append(comb_list)
-
-    print(len(comb_lists))
     return comb_lists
 
 
