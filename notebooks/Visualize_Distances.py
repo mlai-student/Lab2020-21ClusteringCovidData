@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 # ---
 # jupyter:
 #   jupytext:
@@ -38,7 +39,7 @@ from sklearn.metrics.pairwise import euclidean_distances as eukl_dist
 import os
 import pandas as pd
 PROJECT_PATH = os.getcwd().replace("notebooks", "")
-DATA_GEN_FOLDER_NAME = "Jan-19-2021"
+DATA_GEN_FOLDER_NAME = "Jan-21-2021"
 DATASET_PATH = PROJECT_PATH + "data/" + DATA_GEN_FOLDER_NAME + "/"
 OVERVIEW_DATASET_PATH = DATASET_PATH + "overview.csv"
 overview_df = pd.read_csv(OVERVIEW_DATASET_PATH)
@@ -64,12 +65,58 @@ for idx, row in overview_df.iterrows():
 # %%
 #distance between all pairs colored 
 #distance to zero
-for idx, row in tqdm(overview_df.iterrows()):
+for idx, row in overview_df.iterrows():
     with open(PROJECT_PATH+ row["filename"], 'rb') as f:
         dataset = pickle.load(f)
-    for x_ts in dataset.train_data:
+    for x_ts in tqdm(dataset.train_data):
         eukl_distances = [eukl_dist([ts.to_vector()], [x_ts.to_vector()]) for ts in dataset.train_data]
         eukl_sizes = sorted(eukl_distances, reverse=True)
-        print(len(eukl_sizes))
         plt.scatter(list(range(len(eukl_sizes))),eukl_sizes)
     plt.show()
+
+# %% [markdown]
+# ## Smoothness check
+
+# %%
+print("Deutschland mit sieben Tage schnitt -> sieht gut aus")
+ax = plt.figure(figsize=(15,5)).gca()
+smoothings = overview_df.groupby("nr_days_for_avg")
+for smoothing in smoothings:
+    if smoothing[0] == 7 or smoothing[0]==-1:
+        with open(PROJECT_PATH+ smoothing[1].iloc[0]["filename"], 'rb') as f:
+            dataset = pickle.load(f)
+        for ts in dataset.train_data:
+            if ts.country == "Germany":
+                ax.plot(ts.time_series)
+plt.show()
+
+
+print("Auffälliges Land mit gleicher Betrachtung:")
+"Antigua_and_Barbuda"
+"Botswana"
+ax = plt.figure(figsize=(15,5)).gca()
+smoothings = overview_df.groupby("nr_days_for_avg")
+for smoothing in smoothings:
+    if smoothing[0] == 7 or smoothing[0]==-1:
+        with open(PROJECT_PATH+ smoothing[1].iloc[0]["filename"], 'rb') as f:
+            dataset = pickle.load(f)
+        for ts in dataset.train_data:
+            if ts.country == "Benin":
+                ax.plot(ts.time_series)
+plt.show()
+
+
+smoothings = overview_df.groupby("nr_days_for_avg")
+for smoothing in smoothings:
+    if smoothing[0] == 7:
+        with open(PROJECT_PATH+ smoothing[1].iloc[0]["filename"], 'rb') as f:
+            dataset = pickle.load(f)
+        for ts in dataset.train_data:
+            print(ts.country)
+            ax = plt.figure(figsize=(15,5)).gca()
+            ax.plot(ts.time_series)
+            plt.show()
+
+
+
+
