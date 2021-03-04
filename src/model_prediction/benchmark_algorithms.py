@@ -56,7 +56,8 @@ def lstm_forecast_cluster(model: GenericCluster, examples: Examples):
                 tmp_snippets.append(snippet)
             print(f"Abweichung: {avg_perc_dist(tmp_snippets) * 100}% in cluster {l}")
 
-#use the cluster average label to forecast a test snippet
+
+# use the cluster average label to forecast a test snippet
 def cluster_avg_forecast(model: GenericCluster, examples: Examples):
     pred_cluster = [[] for _ in range(model.n_clusters)]
     cluster_ex, pred_label = model.clusters, model.predict(examples)
@@ -64,7 +65,33 @@ def cluster_avg_forecast(model: GenericCluster, examples: Examples):
     for (label, snippet) in zip(pred_label, examples.test_data):
         pred_cluster[label].append(snippet)
     for l, cluster in enumerate(cluster_ex):
-        #get average cluster label
+        # get average cluster label
         prediction = np.mean([snippet.label for snippet in cluster.train_data])
+        for snippet in pred_cluster[l]:
+            snippet.forecast = prediction
+
+
+def cluster_naive_forecast(model: GenericCluster, examples: Examples):
+    pred_cluster = [[] for _ in range(model.n_clusters)]
+    centers, pred_label = model.model.cluster_centers_, model.predict(examples)
+
+    for (label, snippet) in zip(pred_label, examples.test_data):
+        pred_cluster[label].append(snippet)
+    for l, center in enumerate(centers):
+        # get average cluster label
+        prediction = naive_forecast(center)
+        for snippet in pred_cluster[l]:
+            snippet.forecast = prediction
+
+
+def cluster_seasonal_naive_forecast(model: GenericCluster, examples: Examples):
+    pred_cluster = [[] for _ in range(model.n_clusters)]
+    centers, pred_label = model.model.cluster_centers_, model.predict(examples)
+
+    for (label, snippet) in zip(pred_label, examples.test_data):
+        pred_cluster[label].append(snippet)
+    for l, center in enumerate(centers):
+        # get average cluster label
+        prediction = seasonal_naive_forecast(center, T=7)
         for snippet in pred_cluster[l]:
             snippet.forecast = prediction

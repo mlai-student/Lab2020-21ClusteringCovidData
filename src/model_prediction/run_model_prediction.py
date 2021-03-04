@@ -57,7 +57,7 @@ def forecast_example_set(main_config):
     forecasting_function = getattr(forecast_functions, forecasting_function_name)
 
     #cluster forecasting methods
-    if forecasting_function_name in ["lstm_forecast_cluster", "cluster_avg_forecast"]:
+    if forecasting_function_name in ["lstm_forecast_cluster", "cluster_avg_forecast", "cluster_naive_forecast", "cluster_seasonal_naive_forecast"]:
         with open(model_filename, 'rb') as f:
             model = pickle.load(f)
         forecasting_function(model, dataset_examples)

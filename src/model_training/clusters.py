@@ -53,6 +53,7 @@ class GenericCluster:
         except Exception as Argument:
             logging.error("Saving model file failed with following message:")
             logging.error(str(Argument))
+        print('saving works')
         #updating main cfg file:
         self.add_model_entry_to_overview_csv(main_config, filename)
 
