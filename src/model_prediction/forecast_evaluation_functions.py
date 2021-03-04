@@ -2,19 +2,17 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 
-def avg_perc_dist(forecast_snippet_list):
+def avg_perc_dist(forecast_snippet_list, min_label_value=0):
     avg_perc_dist_sum, samples_count = 0,0
     for snippet in forecast_snippet_list:
         inverted_label = round(snippet.invert_to_abs_cases(snippet.label))
         # check if something went wrong and print debug output
         if inverted_label < 0:
-            print(
-                f"Error: Snippet label: {snippet.label} Snippet forecast {snippet.forecast} and inverted label {inverted_label}")
-        if inverted_label != 0:
+            print(f"Error: Snippet label: {snippet.label} Snippet forecast {snippet.forecast} and inverted label {inverted_label}")
+        if inverted_label > min_label_value:
             inverted_forecast = round(snippet.invert_to_abs_cases(snippet.forecast))
             if inverted_forecast < 0:
-                print(
-                    f"Snippet label: {snippet.label} Snippet forecast {snippet.forecast} and inverted forecast {inverted_forecast}")
+                print(f"Snippet label: {snippet.label} Snippet forecast {snippet.forecast} and inverted forecast {inverted_forecast}")
             # add the forecast precicion
             avg_perc_dist_sum += abs(inverted_forecast - inverted_label) / inverted_label
             samples_count += 1
