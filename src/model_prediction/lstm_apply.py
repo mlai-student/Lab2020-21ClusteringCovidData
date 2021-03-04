@@ -6,21 +6,22 @@ from torch.utils.data import TensorDataset, DataLoader
 
 from src.data_representation.Examples import Examples
 from src.model_prediction.lstm_model import Forecaster_LSTM
+from src.model_prediction.simple_model import Forecaster_Simple
 
 
 def apply_lstm(train_ex: Examples, test_ex: Examples):
     # Define hyperparameters
     tmp_snippet = train_ex.train_data[0]
-    input_size, num_layers, hidden_size = 1, 4, 64
-    epochs = 300
+    input_size, num_layers, hidden_size = 1, 1, 64
+    epochs = 400
     batch_size = 28
     learning_rate = 2e-4
-    use_lstm = True
+    use_lstm = False
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
     logging.debug(f"For LSTM Training the following device is used: {device}")
 
-    forecaster = Forecaster_LSTM(input_size, hidden_size, num_layers).to(device)
-    # forecaster = Forecaster_Simple(len(tmp_snippet.time_series), num_layers=num_layers, layers=[100])
+    # forecaster = Forecaster_LSTM(input_size, hidden_size, num_layers).to(device)
+    forecaster = Forecaster_Simple(len(tmp_snippet.time_series), num_layers=num_layers, layers=[hidden_size])
     best_forecaster = copy.deepcopy(forecaster)
 
     X, _, y, _ = train_ex.split_examples()

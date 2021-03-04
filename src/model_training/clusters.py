@@ -14,6 +14,8 @@ from src.data_representation.config_to_dict import get_config_dict
 class GenericCluster:
     def fit(self, X: Examples):
         self.model.fit(self.preprocess(X))
+        if self.name in "DBSCAN":
+            self.update_clusters()
         self.clusters, self.n_per_clusters, self.labels = X.divide_by_label(self.n_clusters, labels=self.model.labels_)
         return self
 
@@ -120,7 +122,7 @@ class GenericCluster:
                 X_train, _, _, _ = X.split_examples()
                 return calinski_harabasz_score(X_train, labels=self.labels)
         except Exception as Argument:
-            logging.error("Computing silhouette score failed with following message:")
+            logging.error("Computing calinskis score failed with following message:")
             logging.error(str(Argument))
 
     def davies(self, use_add_info=False, key="Population"):
@@ -134,7 +136,7 @@ class GenericCluster:
                 return davies_bouldin_score(X_train, labels=self.labels)
 
         except Exception as Argument:
-            logging.error("Computing silhouette score failed with following message:")
+            logging.error("Computing davies score failed with following message:")
             logging.error(str(Argument))
 
     def statistics(self, verbose=False):
@@ -192,7 +194,7 @@ class DBSCAN(GenericCluster):
         return None
 
     def update_clusters(self):
-        self.n_clusters = len(set(self.labels)) - (1 if -1 in self.labels else 0)
+        self.n_clusters = len(set(self.model.labels_)) - (1 if -1 in self.model.labels_ else 0)
 
 
 class TS_KernelKMeans(GenericCluster):
