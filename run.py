@@ -158,13 +158,15 @@ def main(path_to_cfg):
     comb_lists = get_all_valid_cfg_combinations(main_config)
     print("Run through all combinations")
     print(f"Nr combinations: {len(comb_lists)}")
-    for i, comb in tqdm(enumerate(comb_lists)):
-        logging.info("Run project with settings: " + str(comb))
-        set_main_cfg_to_comb_data(main_config, comb)
-        filename_example = foldername + "examples_sets/example_set_" + str(i)
-        filename_model = foldername + "models/trained_model_" + str(i)
-        run_project_w_unique_config(main_config, variable_config, filename_example, filename_model, foldername)
-        add_entry_to_overview_csv(main_config, filename_example, filename_model, foldername)
+    for i, comb in tqdm(list(enumerate(comb_lists))):
+        #run each possible combination multiple times to get stable results -> defined in variables_cfg
+        for validation_run_nr in range((int)(variable_config["general_settings"]["number_iterations_for_each_setting_combination"])):
+            logging.info(f"Run ({validation_run_nr+1} iteration) of project with settings : {str(comb)}")
+            set_main_cfg_to_comb_data(main_config, comb)
+            filename_example = foldername + "examples_sets/example_set_" + str(i) + "_iteration_" + str(validation_run_nr+1)
+            filename_model = foldername + "models/trained_model_" + str(i) +"_iteration_" + str(validation_run_nr+1)
+            run_project_w_unique_config(main_config, variable_config, filename_example, filename_model, foldername)
+            add_entry_to_overview_csv(main_config, filename_example, filename_model, foldername)
     print("Done")
     logging.shutdown()
     return 0
