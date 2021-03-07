@@ -12,7 +12,8 @@ def avg_perc_dist(forecast_snippet_list, min_label_value=0):
         if inverted_label > min_label_value:
             inverted_forecast = round(snippet.invert_to_abs_cases(snippet.forecast))
             if inverted_forecast < 0:
-                print(f"Snippet label: {snippet.label} Snippet forecast {snippet.forecast} and inverted forecast {inverted_forecast}")
+                #print(f"Snippet label: {snippet.label} Snippet forecast {snippet.forecast} and inverted forecast {inverted_forecast}")
+                inverted_forecast = 0
             # add the forecast precicion
             avg_perc_dist_sum += abs(inverted_forecast - inverted_label) / inverted_label
             samples_count += 1
