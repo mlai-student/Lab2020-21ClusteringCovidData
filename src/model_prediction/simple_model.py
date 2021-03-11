@@ -26,5 +26,5 @@ class Forecaster_Simple(nn.Module):
         out = input_seq.transpose(0, 1)
         for layer in self.classifier:
             out = layer(out)
-
+            out = torch.sigmoid(out)
         return out.view(-1)

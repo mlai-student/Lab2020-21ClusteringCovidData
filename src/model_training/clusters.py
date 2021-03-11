@@ -22,12 +22,13 @@ class GenericCluster:
     def predict(self, X_test: Examples):
         try:
             X_test = self.preprocess(X_test, predict=True)
+            print(X_test.shape)
             return self.model.predict(X_test)
         except NotFittedError as e:
             print(repr(e))
 
     def plot_cluster(self):
-        fig, axs = plt.subplots(nrows=self.n_clusters, figsize=(10, self.n_clusters * 2))
+        fig, axs = plt.subplots(nrows=self.n_clusters, figsize=(7, self.n_clusters * 2))
         color = iter(plt.cm.rainbow(np.linspace(0, 1, len(self.clusters))))
         for i, cl in enumerate(self.clusters):
             cl_color = next(color)
@@ -179,7 +180,7 @@ class DBSCAN(GenericCluster):
     def __init__(self, eps, metric):
         self.name = "DBSCAN"
         if metric == "euclidean":
-            self.model = sk.DBSCAN(eps=eps, metric='euclidean', min_samples=4)
+            self.model = sk.DBSCAN(eps=eps, metric='euclidean', min_samples=3)
         else:
             self.model = sk.DBSCAN(eps=eps, metric='precomputed')
         self.metric, self.n_clusters, self.eps = metric, eps, eps

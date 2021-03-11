@@ -1,3 +1,5 @@
+from sklearn.linear_model import LinearRegression
+
 from src.data_representation.Examples import Examples
 from src.model_prediction.forecast_evaluation_functions import avg_perc_dist
 from src.model_prediction.lstm_apply import apply_lstm
@@ -35,6 +37,7 @@ def lstm_forecast_cluster(model: GenericCluster, examples: Examples):
     pred_label = model.predict(examples)
     for idx, (label, snippet) in enumerate(zip(pred_label, examples.test_data)):
         pred_cluster[label].append([snippet, idx])
+
     for l, cluster in enumerate(cluster_ex):
         if len(pred_cluster[l]) > 0:
             test_snippets = [p[0] for p in pred_cluster[l]]
@@ -94,4 +97,28 @@ def cluster_seasonal_naive_forecast(model: GenericCluster, examples: Examples):
         # get average cluster label
         prediction = seasonal_naive_forecast(center, T=7)
         for snippet in pred_cluster[l]:
+            snippet.forecast = prediction
+
+
+def linear_regression(examples: Examples):
+    X_train, X_test, y_train, _ = examples.split_examples()
+    lr = LinearRegression().fit(X_train, y_train)
+    predictions = lr.predict(X_test)
+    for snippet, pred in zip(examples.test_data, predictions):
+        snippet.forecast = pred
+
+
+def linear_regression_cluster(model: GenericCluster, examples: Examples):
+    pred_cluster = [[] for _ in range(model.n_clusters)]
+    cluster_ex, pred_label = model.clusters, model.predict(examples)
+
+    for (label, snippet) in zip(pred_label, examples.test_data):
+        pred_cluster[label].append(snippet)
+    for l, cluster in enumerate(cluster_ex):
+        # get average cluster label
+        X_train, _, y_train, _ = cluster.split_examples()
+        lr_cluster = LinearRegression().fit(X_train, y_train)
+        for snippet in pred_cluster[l]:
+            tmp = snippet.time_series
+            prediction = lr_cluster.predict(tmp.reshape(1, -1))
             snippet.forecast = prediction

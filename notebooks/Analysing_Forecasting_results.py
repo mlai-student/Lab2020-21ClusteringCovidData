@@ -33,34 +33,40 @@ sys.path.append(PROJECT_PATH)
 from src.data_representation.Examples import load_Examples_from_file
 from src.model_prediction.forecast_evaluation_functions import avg_perc_dist
 
-foldername = "linear_cluster"
+#foldernames = ["linear_complete", "linear_cluster", "lstm_cluster", "lstm_all", "cluster_benchmark","non_cluster_benchmark"]
+#foldernames = ["naive_boxplot_variance_test"]
+foldernames = ["lr_test"]
+forecast_results_df= pd.DataFrame()
+for foldername in foldernames:
+    forecast_results_df= pd.concat([forecast_results_df,pd.read_csv(f"../data/{foldername}/forecasting_results.csv")])
 
-forecast_results_df = pd.read_csv(f"../data/{foldername}/forecasting_results.csv")
-
-forecast_results_df = forecast_results_df[forecast_results_df['model_training_settings models'] == 'KMeans']
 
 # %%
 non_group_cols = ['forecast_dataset_filename',
                   'data_generating_settings generated_folder_name',
                   'data_generating_settings generated_folder_path',
                   'data_generating_settings generated_data_path',
-                  'data_generating_settings generated_model_path', 
+                  'data_generating_settings generated_model_path',
                   'forecast_evaluation']
 group_cols = [col for col in forecast_results_df.columns if not col in non_group_cols]
 
 grouped_forecast_results = forecast_results_df.groupby(group_cols)
-group_cols
+#group_cols
 
 # %%
 #Average results for each combination and save avg result in df with important cols:
-avg_df = pd.DataFrame([], columns=group_cols+['avg_forecast_evaluation'])
-for group in (grouped_forecast_results):
+avg_perc_list = ['0_avg_forecast_evaluation','100_avg_forecast_evaluation','1000_avg_forecast_evaluation']
+avg_df = pd.DataFrame([], columns=group_cols+avg_perc_list)
+for group in tqdm(grouped_forecast_results):
     forecast_filenames =  group[1]['forecast_dataset_filename'].values
-    results = []
+    z_results, h_results, t_results = [],[],[]
     for filename in forecast_filenames:
-        results.append(avg_perc_dist(load_Examples_from_file(PROJECT_PATH+filename).test_data))
-    avg_df.loc[len(avg_df)] = (list(group[0]) + [np.mean(results)])
-    # print(results)
+        test_data = load_Examples_from_file(PROJECT_PATH+filename).test_data
+        z_results.append(avg_perc_dist(test_data,0))
+        h_results.append(avg_perc_dist(test_data,100))
+        t_results.append(avg_perc_dist(test_data,1000))
+    means = [np.mean(z_results),np.mean(h_results),np.mean(t_results)]
+    avg_df.loc[len(avg_df)] = (list(group[0]) + means)
 
 
 # %%
@@ -68,63 +74,55 @@ avg_df
 
 # %%
 #analyse after
-for group in avg_df.groupby(["data_generating_settings nr_days_for_avg", "model_training_settings n_clusters"]):
-    values = group[1]["avg_forecast_evaluation"].values
-    forecast_mean = np.mean(values)
+results = pd.DataFrame()
+for group in avg_df.groupby("model_prediction_settings forecast_function"):
+    forecast_mean = group[1][avg_perc_list].mean()
     #pd.DataFrame(values, columns=["Label >= 100"]).boxplot(vert=False, figsize=(13,5))
     #plt.show()
-    print(f"{group[0]}: {forecast_mean}")
+    results[group[0]] = forecast_mean
+results.T
 
 # %% [markdown]
-# # Results
-#
-# ## Linear 
-# ### Cluster 100: 
-# -1: 0.27008258552985753 \
-# 3: 0.33088937448977473 \
-# 7: 0.38978436335074584 
-#
-# ### 50:
-# -1: 0.3011381067200981 \
-# 3: 0.36559987340287414 \
-# 7: 0.4316047958630479 
-#
-# ### Complete 100:
-# -1: 0.2764243281868022 \
-# 3: 0.3351384753593156\
-# 7: 0.37557498530381717
-#
-# ### 50:
-# -1: 0.30760563419867787\
-# 3: 0.37275411780280554\
-# 7: 0.4151329015080114
-#
-#
-# ## LSTM
-# ### complete 100:
-# 0.32384209200842 \
-# 3: 0.3707301242947537 \
-# 7: 0.38836846132681435
-# ### 50: 
-# 0.35635699590258285\
-# 3: 0.4059244121221388\
-# 7: 0.42690407178808726
-#
-# ### 0:
-# -1: 0.8193623707720838\
-# 3: 0.8739256446515782\
-# 7: 0.9442986509723494
-# #### grouped by cluster
-# 5: 0.9082094530654956\
-# 10: 0.7951428182911551\
-# 15: 0.867058002367925\
-# 20: 0.9463719481367731
-#
-# ### cluster 100:
-# -1: 0.30451311125828906 \
-# 3: 0.38341639878129646 \
-# 7: 0.42842988052459047
-# ### 50:
-# 0.3330582208779861\
-# 3: 0.41909458590327253\
-# 7: 0.47933431795026654
+# # who benefits from smoothing:
+
+# %%
+#over all
+print("Naive forecast results")
+sm_results = pd.DataFrame()
+for group in avg_df.groupby("data_generating_settings nr_days_for_avg"):
+    naive_grp = group[1][group[1]["model_prediction_settings forecast_function"] == "naive_forecast"]
+    forecast_mean = naive_grp[avg_perc_list].mean()
+    #pd.DataFrame(values, columns=["Label >= 100"]).boxplot(vert=False, figsize=(13,5))
+    #plt.show()
+    sm_results[group[0]] = forecast_mean
+sm_results.T
+
+# %% [markdown]
+# # overall winner
+
+# %%
+win_idxs = avg_df[avg_perc_list].idxmin()
+print(win_idxs)
+avg_df.loc[win_idxs.values].T
+
+# %% [markdown]
+# # variance test
+
+# %%
+
+forecast_filenames =  forecast_results_df['forecast_dataset_filename'].values
+z_results, h_results, t_results = [],[],[]
+for filename in tqdm(forecast_filenames):
+    test_data = load_Examples_from_file(PROJECT_PATH+filename).test_data
+    z_results.append(avg_perc_dist(test_data,0))
+    h_results.append(avg_perc_dist(test_data,100))
+    t_results.append(avg_perc_dist(test_data,1000))
+
+results  = pd.DataFrame()
+results["Label > 0"] = z_results
+results["Label > 100"] = h_results
+results["Label > 1000"] = t_results
+results.boxplot(vert=False, figsize=(20,5))
+plt.savefig("linear_20_results_boxplot.png")
+
+# %%

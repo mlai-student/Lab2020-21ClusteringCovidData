@@ -12,8 +12,8 @@ from src.model_prediction.simple_model import Forecaster_Simple
 def apply_lstm(train_ex: Examples, test_ex: Examples):
     # Define hyperparameters
     tmp_snippet = train_ex.train_data[0]
-    input_size, num_layers, hidden_size = 1, 1, 64
-    epochs = 400
+    input_size, num_layers, hidden_size = 1, 1, 100
+    epochs = 700
     batch_size = 28
     learning_rate = 2e-4
     use_lstm = False
@@ -21,7 +21,7 @@ def apply_lstm(train_ex: Examples, test_ex: Examples):
     logging.debug(f"For LSTM Training the following device is used: {device}")
 
     # forecaster = Forecaster_LSTM(input_size, hidden_size, num_layers).to(device)
-    forecaster = Forecaster_Simple(len(tmp_snippet.time_series), num_layers=num_layers, layers=[hidden_size])
+    forecaster = Forecaster_Simple(len(tmp_snippet.time_series), num_layers=num_layers, layers=[hidden_size]).to(device)
     best_forecaster = copy.deepcopy(forecaster)
 
     X, _, y, _ = train_ex.split_examples()

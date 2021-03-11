@@ -116,7 +116,9 @@ def get_all_valid_cfg_combinations(main_config):
 def is_a_valid_comb_list(comb_list):
     valid_model_combs = {"euclidean": ["KMedoids", "KMeans", "DBSCAN"],
                          "dtw": ["TS_KMeans", "TS_KShape"]}
-    if str(comb_list[-2]) in valid_model_combs[str(comb_list[-3])]:
+    epsilon = comb_list[-1] < 4 and str(comb_list[-2]) in "DBSCAN"
+    n_cluster = comb_list[-1] > 4 and str(comb_list[-2])not in "DBSCAN"
+    if str(comb_list[-2]) in valid_model_combs[str(comb_list[-3])] and (epsilon or n_cluster):
         return True
     return False
 
