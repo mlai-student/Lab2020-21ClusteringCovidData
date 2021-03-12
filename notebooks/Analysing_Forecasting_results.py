@@ -35,7 +35,7 @@ from src.model_prediction.forecast_evaluation_functions import avg_perc_dist
 
 #foldernames = ["linear_complete", "linear_cluster", "lstm_cluster", "lstm_all", "cluster_benchmark","non_cluster_benchmark"]
 #foldernames = ["naive_boxplot_variance_test"]
-foldernames = ["lr_test"]
+foldernames = ["lr_cluster"]
 forecast_results_df= pd.DataFrame()
 for foldername in foldernames:
     forecast_results_df= pd.concat([forecast_results_df,pd.read_csv(f"../data/{foldername}/forecasting_results.csv")])
@@ -70,7 +70,10 @@ for group in tqdm(grouped_forecast_results):
 
 
 # %%
-avg_df
+avg_df.columns
+
+# %%
+avg_df[avg_df['model_training_settings models']=="KMeans"]
 
 # %%
 #analyse after
@@ -123,6 +126,6 @@ results["Label > 0"] = z_results
 results["Label > 100"] = h_results
 results["Label > 1000"] = t_results
 results.boxplot(vert=False, figsize=(20,5))
-plt.savefig("linear_20_results_boxplot.png")
+plt.savefig("linear_100_results_boxplot.png")
 
 # %%

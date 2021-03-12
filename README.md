@@ -5,6 +5,7 @@ Lab project on Clustering Time Series
 ## Motivation
 
 The corona virus dictates how many people have to live their everyday life. Finding similar case developments between countries and forecasting Covid-19 cases may help in overcoming the pandemic by acting foresighted. For this purpose, we developed a framework that is capable of clustering time-series data of Covid-19 cases and predicting future cases using the results.
+
 ---
 ## Key Features
 This projects' framework provides following functionalities:

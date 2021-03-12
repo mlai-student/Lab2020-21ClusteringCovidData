@@ -22,7 +22,6 @@ class GenericCluster:
     def predict(self, X_test: Examples):
         try:
             X_test = self.preprocess(X_test, predict=True)
-            print(X_test.shape)
             return self.model.predict(X_test)
         except NotFittedError as e:
             print(repr(e))

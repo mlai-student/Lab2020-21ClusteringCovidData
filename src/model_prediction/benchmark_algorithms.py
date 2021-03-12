@@ -119,6 +119,5 @@ def linear_regression_cluster(model: GenericCluster, examples: Examples):
         X_train, _, y_train, _ = cluster.split_examples()
         lr_cluster = LinearRegression().fit(X_train, y_train)
         for snippet in pred_cluster[l]:
-            tmp = snippet.time_series
-            prediction = lr_cluster.predict(tmp.reshape(1, -1))
-            snippet.forecast = prediction
+            prediction = lr_cluster.predict(snippet.time_series.reshape(1, -1))
+            snippet.forecast = np.asscalar(prediction)
